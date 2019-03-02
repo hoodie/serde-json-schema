@@ -1,0 +1,19 @@
+[package]
+name = "serde-json-schema"
+version = "0.1.0"
+authors = ["Hendrik Sollich <hendrik.sollich@logmein.com>"]
+edition = "2018"
+
+[dependencies]
+url_serde = "0.2.0"
+
+[dependencies.url]
+version = "1.7"
+features = ["serde"]
+
+[dependencies.serde]
+version = "1.0"
+features = ["derive"]
+
+[dependencies.serde_json]
+version = "1.0"
