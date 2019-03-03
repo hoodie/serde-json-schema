@@ -69,6 +69,7 @@ pub enum SchemaValue {
 
     Object {
         properties: HashMap<String, Property>,
+        required: Option<Vec<String>>,
     },
 }
 
@@ -109,7 +110,7 @@ impl SchemaValue {
                 Err(vec![format!("expected array found {:?}", unexpected_value)])
             },
 
-            (Object{ properties }, Value::Object(object)) => {
+            (Object{ properties, required }, Value::Object(object)) => {
                 let errors: Vec<std::string::String> = properties
                     .iter()
                     .filter_map(|(k, schema)| object
@@ -118,7 +119,13 @@ impl SchemaValue {
                             Property::Value(schema) => schema.validate(v).err(),
                             Property::Ref(_schema) => unimplemented!(),
                         })
-                        .unwrap_or(Some(vec![format!("object doesn't contain {}", k)]))
+                        .unwrap_or_else(||
+                            if required.iter().flat_map(|v| v.iter()).any(|x| x == k) {
+                                Some(vec![format!("object doesn't contain {}", k)])
+                            } else {
+                                None
+                            }
+                        )
                     )
                     .flat_map(|errors| errors.into_iter())
                     .collect();
@@ -228,7 +235,7 @@ mod tests {
     }
 
     #[test]
-    fn validate_find_missing() {
+    fn validate_find_missing_required() {
         let raw_schema = include_str!("../test/address.schema.json");
         let schema: Schema = serde_json::from_str(raw_schema).unwrap();
 
@@ -238,6 +245,17 @@ mod tests {
         assert!(schema.validate(&json_missing).is_err());
     }
 
+
+    #[test]
+    fn validate_find_missing() {
+        let raw_schema = include_str!("../test/address.schema.json");
+        let schema: Schema = serde_json::from_str(raw_schema).unwrap();
+
+        let json_missing: serde_json::Value =
+            serde_json::from_str(include_str!("../test/address.missing-non-required.json")).unwrap();
+        // TODO: make more concrete error type
+        schema.validate(&json_missing).unwrap();
     }
+
 }
 
