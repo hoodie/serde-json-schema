@@ -48,6 +48,8 @@ pub enum Property {
 #[serde(tag = "type")]
 pub enum SchemaValue {
     #[serde(rename = "string")] String,
+    #[serde(rename = "integer")] Integer,
+    #[serde(rename = "number")] Number,
 
     #[serde(rename = "array")] Array {
         items: Box<SchemaValue>
@@ -68,6 +70,16 @@ impl SchemaValue {
             (String, Value::String(_)) => Ok(()),
             (String, unexpected_value) => {
                 Err(vec![format!("expected string found {:?}", unexpected_value)])
+            },
+
+            (Number, Value::Number(_)) => Ok(()),
+            (Number, unexpected_value) => {
+                Err(vec![format!("expected number found {:?}", unexpected_value)])
+            },
+
+            (Integer, Value::Number(i)) if i.is_i64() => Ok(()),
+            (Integer, unexpected_value) => {
+                Err(vec![format!("expected integer found {:?}", unexpected_value)])
             },
 
             (Array{ items }, Value::Array(elems)) => {
@@ -140,9 +152,29 @@ mod tests {
     }
 
     #[test]
+    fn green_door_example() {
+        let schema: Schema = serde_json::from_str(include_str!("../test/green_door.schema.json")).unwrap();
+        let json_green_door: serde_json::Value =
+            serde_json::from_str(include_str!("../test/green_door.json")).unwrap();
+        println!("{:#?}", schema);
+        schema.validate(&json_green_door).unwrap();
+    }
+
+    #[test]
+    fn validate_wrong_numbers() {
+        let schema: Schema = serde_json::from_str(include_str!("../test/green_door.schema.json")).unwrap();
+        let json_green_door: serde_json::Value =
+            serde_json::from_str(include_str!("../test/green_door.wrong_number_types.json")).unwrap();
+        println!("{:#?}", schema);
+        assert_eq!(
+            schema.validate(&json_green_door),
+            Err(vec![String::from("expected integer found Number(1.2)")])
+            );
+    }
+
+   #[test]
     fn draft_version() {
-        let raw = include_str!("../test/card.schema.json");
-        let schema: Schema = serde_json::from_str(raw).unwrap();
+        let schema: Schema = serde_json::from_str(include_str!("../test/card.schema.json")).unwrap();
         println!("{:#?}", schema.draft_version());
         assert_eq!(schema.draft_version(), Some("draft-07"))
     }
