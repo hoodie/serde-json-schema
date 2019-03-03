@@ -51,23 +51,23 @@ pub struct NumberCriteria {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(tag = "type")]
+#[serde(tag = "type", rename_all = "camelCase")]
 pub enum SchemaValue {
-    #[serde(rename = "string")] String,
-    #[serde(rename = "integer")] Integer {
+    String,
+    Integer {
         #[serde(flatten)]
         criteria: NumberCriteria
     },
-    #[serde(rename = "number")] Number {
+    Number {
         #[serde(flatten)]
         criteria: NumberCriteria
     },
 
-    #[serde(rename = "array")] Array {
+    Array {
         items: Box<SchemaValue>
     },
 
-    #[serde(rename = "object")] Object {
+    Object {
         properties: HashMap<String, Property>,
     },
 }
