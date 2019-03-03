@@ -142,27 +142,40 @@ pub struct RefProperty {
 mod tests {
     use super::*;
 
-    #[test]
-    fn address_example() {
-        let raw = include_str!("../test/address.schema.json");
-        let schema: Schema = serde_json::from_str(raw).unwrap();
-        println!("{:#?}", schema);
-    }
+    mod parse_examples {
+        use super::*;
+
+        #[test]
+        fn address_example() {
+            let raw = include_str!("../test/address.schema.json");
+            let schema: Schema = serde_json::from_str(raw).unwrap();
+            println!("{:#?}", schema);
+        }
+
+        #[test]
+        fn calendar_example() {
+            let raw = include_str!("../test/calendar.schema.json");
+            let schema: Schema = serde_json::from_str(raw).unwrap();
+            println!("{:#?}", schema);
+        }
+
+        #[test]
+        fn card_example() {
+            let raw = include_str!("../test/card.schema.json");
+            let schema: Schema = serde_json::from_str(raw).unwrap();
+            println!("{:#?}", schema);
+        }
 
     #[test]
-    fn calendar_example() {
-        let raw = include_str!("../test/calendar.schema.json");
-        let schema: Schema = serde_json::from_str(raw).unwrap();
-        println!("{:#?}", schema);
-    }
+        fn draft_version() {
+            let schema: Schema = serde_json::from_str(include_str!("../test/card.schema.json")).unwrap();
+            println!("{:#?}", schema.draft_version());
+            assert_eq!(schema.draft_version(), Some("draft-07"))
+        }
 
-    #[test]
-    fn card_example() {
-        let raw = include_str!("../test/card.schema.json");
-        let schema: Schema = serde_json::from_str(raw).unwrap();
-        println!("{:#?}", schema);
     }
-
+    mod validation {
+        use super::*;
     #[test]
     fn green_door_example() {
         let schema: Schema = serde_json::from_str(include_str!("../test/green_door.schema.json")).unwrap();
@@ -184,13 +197,6 @@ mod tests {
             );
     }
 
-   #[test]
-    fn draft_version() {
-        let schema: Schema = serde_json::from_str(include_str!("../test/card.schema.json")).unwrap();
-        println!("{:#?}", schema.draft_version());
-        assert_eq!(schema.draft_version(), Some("draft-07"))
-    }
-
     #[test]
     fn validate_pure_string_object() {
         let raw_schema = include_str!("../test/address.schema.json");
@@ -199,6 +205,15 @@ mod tests {
         let json_correct: serde_json::Value =
             serde_json::from_str(include_str!("../test/address.json")).unwrap();
         schema.validate(&json_correct).unwrap();
+    }
+
+    #[test]
+    fn validate_root_array() {
+        let schema: Schema = serde_json::from_str(include_str!("../test/root_array.schema.json")).unwrap();
+
+        let json_array: serde_json::Value =
+            serde_json::from_str(include_str!("../test/root_array.json")).unwrap();
+        schema.validate(&json_array).unwrap();
     }
 
     #[test]
@@ -221,8 +236,8 @@ mod tests {
             serde_json::from_str(include_str!("../test/address.missing.json")).unwrap();
         // TODO: make more concrete error type
         assert!(schema.validate(&json_missing).is_err());
-
     }
 
+    }
 }
 
