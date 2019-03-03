@@ -45,11 +45,23 @@ pub enum Property {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NumberCriteria {
+    exclusive_minimum: Option<serde_json::Value>
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum SchemaValue {
     #[serde(rename = "string")] String,
-    #[serde(rename = "integer")] Integer,
-    #[serde(rename = "number")] Number,
+    #[serde(rename = "integer")] Integer {
+        #[serde(flatten)]
+        criteria: NumberCriteria
+    },
+    #[serde(rename = "number")] Number {
+        #[serde(flatten)]
+        criteria: NumberCriteria
+    },
 
     #[serde(rename = "array")] Array {
         items: Box<SchemaValue>
@@ -72,13 +84,13 @@ impl SchemaValue {
                 Err(vec![format!("expected string found {:?}", unexpected_value)])
             },
 
-            (Number, Value::Number(_)) => Ok(()),
-            (Number, unexpected_value) => {
+            (Number{..}, Value::Number(_)) => Ok(()),
+            (Number{..}, unexpected_value) => {
                 Err(vec![format!("expected number found {:?}", unexpected_value)])
             },
 
-            (Integer, Value::Number(i)) if i.is_i64() => Ok(()),
-            (Integer, unexpected_value) => {
+            (Integer{..}, Value::Number(i)) if i.is_i64() => Ok(()),
+            (Integer{..}, unexpected_value) => {
                 Err(vec![format!("expected integer found {:?}", unexpected_value)])
             },
 
