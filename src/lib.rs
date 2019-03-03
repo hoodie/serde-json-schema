@@ -3,17 +3,22 @@ use url::Url;
 
 use std::collections::HashMap;
 
+// TODO: root array vs object
 #[derive(Debug, Serialize, Deserialize)]
-struct Schema {
+pub struct Schema {
     #[serde(rename = "$id", with = "url_serde")]
-    id: Url,
+    pub id: Url,
 
     #[serde(rename = "$schema", with = "url_serde")]
-    schema: Url,
-    description: String,
-    properties: HashMap<String, Property>,
-    required: Vec<String>,
-    dependencies: Option<HashMap<String, Vec<String>>>
+    pub schema: Url,
+    pub description: String,
+    // pub properties: HashMap<String, Property>,
+    // pub required: Vec<String>,
+    pub dependencies: Option<HashMap<String, Vec<String>>>,
+
+
+    #[serde(flatten)]
+    specification: Property,
 }
 
 impl Schema {
@@ -22,22 +27,30 @@ impl Schema {
             .path_segments()
             .and_then(|mut segments| segments.next())
     }
+
+    pub fn validate(&self, json: &serde_json::Value) -> bool {
+        match &self.specification {
+            Property::Inline(ref prop) => prop.validate(json),
+            Property::Ref(_) => unimplemented!()
+        }
+    }
+
 }
 
 #[serde(untagged)]
 #[derive(Debug, Serialize, Deserialize)]
-enum Property {
-    Inline(InlineProperty),
+pub enum Property {
+    Inline(SchemaValue),
     Ref(RefProperty),
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type")]
-enum InlineProperty {
+pub enum SchemaValue {
     #[serde(rename = "string")] String,
 
     #[serde(rename = "array")] Array {
-        items: Box<InlineProperty>
+        items: Box<SchemaValue>
     },
 
     #[serde(rename = "object")] Object {
@@ -45,10 +58,44 @@ enum InlineProperty {
     },
 }
 
+impl SchemaValue {
+
+    pub fn validate(&self, json: &serde_json::Value) -> bool {
+        use SchemaValue::*;
+        use serde_json::Value;
+
+        match (&self, json) {
+            (String, Value::String(_)) => true,
+            (String, unexpected_value) => {
+                eprintln!("expected string found {}", unexpected_value);
+                false
+            },
+
+            (Array{ items }, Value::Array(elems)) => elems.iter().all(|elem| items.validate(&elem)),
+            (Array{ .. }, _) => false,
+
+            (Object{ properties }, Value::Object(hash)) => {
+                hash.iter()
+                    .all(|(k, v)|
+                    properties
+                        .get(k)
+                        .map(|s| match s {
+                            Property::Inline(schema) => schema.validate(v),
+                            Property::Ref(_schema) => unimplemented!(),
+                        })
+                        .unwrap_or(false)
+                    )
+            },
+
+            (Object{ .. }, _) => false,
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
-struct RefProperty {
+pub struct RefProperty {
     #[serde(rename = "$ref")]
-    reference: String
+    pub reference: String
 }
 
 #[cfg(test)]
@@ -82,6 +129,18 @@ mod tests {
         let schema: Schema = serde_json::from_str(raw).unwrap();
         println!("{:#?}", schema.draft_version());
         assert_eq!(schema.draft_version(), Some("draft-07"))
+    }
+
+    #[test]
+    fn validate_string_object() {
+        let raw_json = include_str!("../test/address.json");
+        let raw_schema = include_str!("../test/address.schema.json");
+
+        let json: serde_json::Value = serde_json::from_str(raw_json).unwrap();
+        let schema: Schema = serde_json::from_str(raw_schema).unwrap();
+
+        println!("{:#?}{:#?}", schema, json);
+        assert!(schema.validate(&json))
     }
 
 }
