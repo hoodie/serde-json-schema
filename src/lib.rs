@@ -1,8 +1,15 @@
+//! # serde-json-schema
+//!
+//! This crates provides simply the `Schema` struct. It resembles the latest (draft-07) [json-schema core spec](https://json-schema.org/latest/json-schema-core.html).
+//! If this spec is no longer up-to-date by the time you read this, please open a [new issue](https://github.com/hoodie/serde-json-schema/issues/new).
+
 use serde::{Deserialize, Serialize};
 use url::Url;
 
 use std::collections::HashMap;
+use std::convert::TryFrom;
 
+/// Represents a full JSON Schema Document
 // TODO: root array vs object
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Schema {
@@ -34,48 +41,75 @@ impl Schema {
     }
 }
 
+impl<'a> TryFrom<&str> for Schema {
+    type Error = serde_json::error::Error;
+    fn try_from(s: &str) -> Result<Schema, Self::Error> {
+        serde_json::from_str(s)
+    }
+}
+
+/// Either a `SchemaInstance` or a reference
 #[serde(untagged)]
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Property {
-    Value(SchemaValue),
+    Value(SchemaInstance),
     Ref(RefProperty),
 }
 
+/// Number validation Criteria (WIP)
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NumberCriteria {
     exclusive_minimum: Option<serde_json::Value>,
 }
 
+/// prepresents the [Instance Data Model](https://json-schema.org/latest/json-schema-core.html#rfc.section.4.2.1)
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
-pub enum SchemaValue {
-    String,
+pub enum SchemaInstance {
+    Null,
+
+    Boolean(bool),
+
     Integer {
         #[serde(flatten)]
         criteria: NumberCriteria,
     },
+    Object {
+        properties: HashMap<String, Property>,
+        required: Option<Vec<String>>,
+    },
+
+    Array {
+        items: Box<SchemaInstance>,
+    },
+
     Number {
         #[serde(flatten)]
         criteria: NumberCriteria,
     },
 
-    Array {
-        items: Box<SchemaValue>,
-    },
-
-    Object {
-        properties: HashMap<String, Property>,
-        required: Option<Vec<String>>,
-    },
+    String,
 }
 
-impl SchemaValue {
+impl SchemaInstance {
+    /// TODO: implement [validation](https://json-schema.org/latest/json-schema-validation.html)
     pub fn validate(&self, json: &serde_json::Value) -> Result<(), Vec<String>> {
         use serde_json::Value;
-        use SchemaValue::*;
+        use SchemaInstance::*;
 
         match (&self, json) {
+            (Null, Value::Null) => Ok(()),
+            (Null, unexpected_value) => {
+                Err(vec![format!("expected null found {:?}", unexpected_value)])
+            }
+
+            (Boolean, Value::Bool(_)) => Ok(()),
+            (Boolean, unexpected_value) => Err(vec![format!(
+                "expected boolean found {:?}",
+                unexpected_value
+            )]),
+
             (String, Value::String(_)) => Ok(()),
             (String, unexpected_value) => Err(vec![format!(
                 "expected string found {:?}",
@@ -149,6 +183,7 @@ impl SchemaValue {
     }
 }
 
+/// TODO: implement dereferencing
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RefProperty {
     #[serde(rename = "$ref")]
