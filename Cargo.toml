@@ -4,11 +4,8 @@ version = "0.1.0"
 authors = ["Hendrik Sollich <hendrik@hoodie.de>"]
 edition = "2018"
 
-[dependencies]
-url_serde = "0.2.0"
-
 [dependencies.url]
-version = "1.7"
+version = "2.1"
 features = ["serde"]
 
 [dependencies.serde]

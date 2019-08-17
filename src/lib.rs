@@ -6,10 +6,10 @@ use std::collections::HashMap;
 // TODO: root array vs object
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Schema {
-    #[serde(rename = "$id", with = "url_serde")]
+    #[serde(rename = "$id")]
     pub id: Url,
 
-    #[serde(rename = "$schema", with = "url_serde")]
+    #[serde(rename = "$schema")]
     pub schema: Url,
     pub description: String,
     // pub properties: HashMap<String, Property>,
