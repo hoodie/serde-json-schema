@@ -14,7 +14,6 @@ Minimal implementation of [json-schema](https://json-schema.org/specification.ht
 * [ ] JSON Schema Validation (possibly different crate)
 * [ ] Codegen (definately different crate)
 * [ ] RootSchema vs SubSchema handling]()
-* [ ] full id support
 * [ ] Complete Feature List
 
 ## License

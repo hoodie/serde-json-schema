@@ -23,7 +23,7 @@ fn schema_must_be_a_url() {
 /// https://json-schema.org/latest/json-schema-core.html#rfc.section.8.2
 #[test]
 #[should_panic]
-fn id_must_be_a_url() {
+fn id_must_not_contain_spaces() {
     let raw_schema = r#"{
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "not a uri",
@@ -37,7 +37,41 @@ fn id_must_be_a_url() {
   },
   "required": [ "productId" ]
 }"#;
-    Schema::try_from(raw_schema).unwrap();
+    let schema = Schema::try_from(raw_schema).unwrap();
+    println!("{:#?}", schema);
+}
+
+/// https://json-schema.org/latest/json-schema-core.html#rfc.section.8.2
+#[test]
+fn id_may_be_a_uuid() {
+    let raw_schema = r#"{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:uuid:ee564b8a-7a87-4125-8c96-e9f123d6766f"
+}"#;
+    let schema = Schema::try_from(raw_schema).unwrap();
+    println!("{:#?}", schema);
+}
+
+/// https://json-schema.org/latest/json-schema-core.html#rfc.section.8.2
+#[test]
+fn id_may_be_a_fragment() {
+    let raw_schema = r##"{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "#foo"
+}"##;
+    let schema = Schema::try_from(raw_schema).unwrap();
+    println!("{:#?}", schema);
+}
+
+/// https://json-schema.org/latest/json-schema-core.html#rfc.section.8.2
+#[test]
+fn id_may_be_a_path() {
+    let raw_schema = r##"{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "t/inner.json"
+}"##;
+    let schema = Schema::try_from(raw_schema).unwrap();
+    println!("{:#?}", schema);
 }
 
 /// https://json-schema.org/latest/json-schema-core.html#rfc.section.8.2
@@ -65,7 +99,6 @@ fn id_is_optional() {
 ///
 /// TODO: definitions are not yet implemented
 #[test]
-#[ignore]
 fn subschema() {
     let raw_schema = r##"{
     "$id": "http://example.com/root.json",

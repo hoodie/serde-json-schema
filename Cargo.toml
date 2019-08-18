@@ -5,6 +5,9 @@ authors = ["Hendrik Sollich <hendrik@hoodie.de>"]
 repository = "https://github.com/hoodie/serde-json-schema"
 edition = "2018"
 
+[dependencies]
+json-pointer = "0.3"
+
 [dependencies.url]
 version = "2.1"
 features = ["serde"]

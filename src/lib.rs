@@ -9,6 +9,9 @@ use url::Url;
 use std::collections::HashMap;
 use std::convert::TryFrom;
 
+mod id;
+use crate::id::SchemaId;
+
 /// Represents a full JSON Schema Document
 // TODO: root array vs object
 #[derive(Debug, Serialize, Deserialize)]
@@ -22,47 +25,59 @@ pub enum Schema {
 // TODO: root array vs object
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SchemaDefinition {
-        #[serde(rename = "$id")]
-        id: Option<Url>,
+    #[serde(rename = "$id")]
+    //id: Option<Url>,
+    id: Option<SchemaId>,
 
-        #[serde(rename = "$schema")]
-        schema: Option<Url>,
-        description: Option<String>,
-        // pub properties: HashMap<String, Property>,
-        dependencies: Option<HashMap<String, Vec<String>>>,
+    #[serde(rename = "$schema")]
+    schema: Option<Url>,
+    description: Option<String>,
+    // pub properties: HashMap<String, Property>,
+    dependencies: Option<HashMap<String, Vec<String>>>,
 
-        #[serde(flatten)]
-        specification: Option<Property>,
+    #[serde(flatten)]
+    specification: Option<Property>,
 
-        definitions: Option<HashMap<String, SchemaDefinition>>,
-
+    definitions: Option<HashMap<String, SchemaDefinition>>,
 }
 
 impl Schema {
     pub fn draft_version(&self) -> Option<&str> {
         match self {
-        Schema::Schema(SchemaDefinition{schema: Some(schema), ..}) => 
-            schema
+            Schema::Schema(SchemaDefinition {
+                schema: Some(schema),
+                ..
+            }) => schema
                 .path_segments()
                 .and_then(|mut segments| segments.next()),
-        _ => 
-            None
+            _ => None,
         }
     }
 
-    pub fn id(&self) -> Option<&Url> {
+    pub fn id(&self) -> Option<&SchemaId> {
         match self {
-            Schema::Schema(SchemaDefinition{id: Some(id), ..}) => Some(id),
-            _ => None
+            Schema::Schema(SchemaDefinition { id: Some(id), .. }) => Some(id),
+            _ => None,
         }
     }
 
     pub fn validate(&self, json: &serde_json::Value) -> Result<(), Vec<String>> {
         match self {
-            Schema::Schema(SchemaDefinition{specification: Some(Property::Value(ref prop)), ..}) => prop.validate(json),
-            Schema::Schema(SchemaDefinition{specification: Some(Property::Ref(_)), ..}) => unimplemented!(),
-            Schema::Boolean(true) => {eprintln!(r#"your schema is just "true", everything goes"#); Ok(())},
-            Schema::Boolean(false) => Err(vec![String::from(r##""the scheme "false" will never validate"##)]),
+            Schema::Schema(SchemaDefinition {
+                specification: Some(Property::Value(ref prop)),
+                ..
+            }) => prop.validate(json),
+            Schema::Schema(SchemaDefinition {
+                specification: Some(Property::Ref(_)),
+                ..
+            }) => unimplemented!(),
+            Schema::Boolean(true) => {
+                eprintln!(r#"your schema is just "true", everything goes"#);
+                Ok(())
+            }
+            Schema::Boolean(false) => Err(vec![String::from(
+                r##""the scheme "false" will never validate"##,
+            )]),
             _ => Ok(()),
         }
     }
