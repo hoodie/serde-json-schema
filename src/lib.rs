@@ -12,31 +12,58 @@ use std::convert::TryFrom;
 /// Represents a full JSON Schema Document
 // TODO: root array vs object
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Schema {
-    #[serde(rename = "$id")]
-    pub id: Url,
+#[serde(untagged)]
+pub enum Schema {
+    Schema(SchemaDefinition),
+    Boolean(bool),
+}
 
-    #[serde(rename = "$schema")]
-    pub schema: Url,
-    pub description: String,
-    // pub properties: HashMap<String, Property>,
-    pub dependencies: Option<HashMap<String, Vec<String>>>,
+/// Represents a full JSON Schema Document
+// TODO: root array vs object
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SchemaDefinition {
+        #[serde(rename = "$id")]
+        id: Option<Url>,
 
-    #[serde(flatten)]
-    specification: Property,
+        #[serde(rename = "$schema")]
+        schema: Option<Url>,
+        description: Option<String>,
+        // pub properties: HashMap<String, Property>,
+        dependencies: Option<HashMap<String, Vec<String>>>,
+
+        #[serde(flatten)]
+        specification: Option<Property>,
+
+        definitions: Option<HashMap<String, SchemaDefinition>>,
+
 }
 
 impl Schema {
     pub fn draft_version(&self) -> Option<&str> {
-        self.schema
-            .path_segments()
-            .and_then(|mut segments| segments.next())
+        match self {
+        Schema::Schema(SchemaDefinition{schema: Some(schema), ..}) => 
+            schema
+                .path_segments()
+                .and_then(|mut segments| segments.next()),
+        _ => 
+            None
+        }
+    }
+
+    pub fn id(&self) -> Option<&Url> {
+        match self {
+            Schema::Schema(SchemaDefinition{id: Some(id), ..}) => Some(id),
+            _ => None
+        }
     }
 
     pub fn validate(&self, json: &serde_json::Value) -> Result<(), Vec<String>> {
-        match &self.specification {
-            Property::Value(ref prop) => prop.validate(json),
-            Property::Ref(_) => unimplemented!(),
+        match self {
+            Schema::Schema(SchemaDefinition{specification: Some(Property::Value(ref prop)), ..}) => prop.validate(json),
+            Schema::Schema(SchemaDefinition{specification: Some(Property::Ref(_)), ..}) => unimplemented!(),
+            Schema::Boolean(true) => {eprintln!(r#"your schema is just "true", everything goes"#); Ok(())},
+            Schema::Boolean(false) => Err(vec![String::from(r##""the scheme "false" will never validate"##)]),
+            _ => Ok(()),
         }
     }
 }
@@ -104,8 +131,8 @@ impl SchemaInstance {
                 Err(vec![format!("expected null found {:?}", unexpected_value)])
             }
 
-            (Boolean, Value::Bool(_)) => Ok(()),
-            (Boolean, unexpected_value) => Err(vec![format!(
+            (Boolean(_), Value::Bool(_)) => Ok(()),
+            (Boolean(_), unexpected_value) => Err(vec![format!(
                 "expected boolean found {:?}",
                 unexpected_value
             )]),
@@ -163,7 +190,10 @@ impl SchemaInstance {
                             })
                             .unwrap_or_else(|| {
                                 if required.iter().flat_map(|v| v.iter()).any(|x| x == k) {
-                                    Some(vec![format!("object doesn't contain {}", k)])
+                                    Some(vec![format!(
+                                        "object doesn't contain the required property {:?}",
+                                        k
+                                    )])
                                 } else {
                                     None
                                 }
