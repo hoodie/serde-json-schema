@@ -12,7 +12,7 @@ pub enum SchemaId {
     Url(Url),
     Pointer(JsonPointer<String, Vec<String>>),
     Fragment(Fragment),
-    Path(Path)
+    Path(Path),
 }
 
 #[derive(Debug)]
