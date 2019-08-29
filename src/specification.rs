@@ -18,6 +18,7 @@ pub struct RefProperty {
 }
 
 /// prepresents the [Instance Data Model](https://json-schema.org/latest/json-schema-core.html#rfc.section.4.2.1)
+/// TODO: deprecate this as soon as dereferencing is implemented
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum SchemaInstance {

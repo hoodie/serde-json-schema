@@ -28,13 +28,18 @@ mod validation;
 
 use specification::*;
 
-use crate::id::SchemaId;
+pub use crate::id::SchemaId;
+
+/// Represents a full JSON Schema Document
+// TODO: root array vs object
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Schema(SchemaInner);
 
 /// Represents a full JSON Schema Document
 // TODO: root array vs object
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum Schema {
+enum SchemaInner {
     /// The Common case
     Schema(SchemaDefinition),
     /// For Some stupid reason specs can just be `true` or `false`
@@ -44,7 +49,7 @@ pub enum Schema {
 /// Represents a full JSON Schema Document
 // TODO: root array vs object
 #[derive(Debug, Serialize, Deserialize)]
-pub struct SchemaDefinition {
+struct SchemaDefinition {
     #[serde(rename = "$id")]
     //id: Option<Url>,
     id: Option<SchemaId>,
@@ -63,8 +68,8 @@ pub struct SchemaDefinition {
 
 impl Schema {
     pub fn draft_version(&self) -> Option<&str> {
-        match self {
-            Schema::Schema(SchemaDefinition {
+        match &self.0 {
+            SchemaInner::Schema(SchemaDefinition {
                 schema: Some(schema),
                 ..
             }) => schema
@@ -75,8 +80,8 @@ impl Schema {
     }
 
     fn as_definition(&self) -> Option<&SchemaDefinition> {
-        match self {
-            Schema::Schema(definition@SchemaDefinition { .. }) => Some(definition),
+        match &self.0 {
+            SchemaInner::Schema(definition@SchemaDefinition { .. }) => Some(&definition),
             _ => None,
         }
     }
@@ -94,11 +99,11 @@ impl Schema {
     }
 
     pub fn specification(&self) -> Option<&SchemaInstance> {
-        match self {
-            Schema::Schema(SchemaDefinition {
+        match &self.0 {
+            SchemaInner::Schema(SchemaDefinition {
                 specification: Some(Property::Value(specification @ SchemaInstance::Object { .. })),
                 ..
-            }) => Some(specification),
+            }) => Some(&specification),
             _ => None,
         }
     }
@@ -160,20 +165,20 @@ impl Schema {
     }
 
     pub fn validate(&self, json: &serde_json::Value) -> Result<(), Vec<String>> {
-        match self {
-            Schema::Schema(SchemaDefinition {
+        match self.0 {
+            SchemaInner::Schema(SchemaDefinition {
                 specification: Some(Property::Value(ref prop)),
                 ..
             }) => prop.validate(json),
-            Schema::Schema(SchemaDefinition {
+            SchemaInner::Schema(SchemaDefinition {
                 specification: Some(Property::Ref(_)),
                 ..
             }) => unimplemented!(),
-            Schema::Boolean(true) => {
+            SchemaInner::Boolean(true) => {
                 eprintln!(r#"your schema is just "true", everything goes"#);
                 Ok(())
             }
-            Schema::Boolean(false) => Err(vec![String::from(
+            SchemaInner::Boolean(false) => Err(vec![String::from(
                 r##""the scheme "false" will never validate"##,
             )]),
             _ => Ok(()),
