@@ -17,18 +17,18 @@
 //! ```
 
 use serde::{Deserialize, Serialize};
-use url::Url;
+pub use url::Url;
 
 use std::collections::HashMap;
 use std::convert::TryFrom;
 
-mod id;
+pub mod id;
 mod specification;
 mod validation;
 
 use specification::*;
 
-pub use crate::id::SchemaId;
+use crate::id::SchemaId;
 
 /// Represents a full JSON Schema Document
 // TODO: root array vs object
@@ -63,6 +63,7 @@ struct SchemaDefinition {
     #[serde(flatten)]
     specification: Option<Property>,
 
+    #[serde(skip_serializing_if = "Option::is_none")]
     definitions: Option<HashMap<String, SchemaDefinition>>,
 }
 
@@ -117,7 +118,7 @@ impl Schema {
 
     pub fn required_properties(&self) -> Option<&Vec<String>> {
         match self.specification() {
-            Some(SchemaInstance::Object { required, .. }) => Some(required),
+            Some(SchemaInstance::Object { required, .. }) => required.as_ref(),
             _ => None,
         }
     }

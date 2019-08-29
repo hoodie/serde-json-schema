@@ -32,7 +32,7 @@ pub enum SchemaInstance {
     },
     Object {
         properties: HashMap<String, Property>,
-        required: Vec<String>,
+        required: Option<Vec<String>>,
     },
 
     Array {
@@ -117,7 +117,7 @@ impl SchemaInstance {
                                 Property::Ref(_schema) => unimplemented!(),
                             })
                             .unwrap_or_else(|| {
-                                if required.iter().any(|x| x == k) {
+                                if required.iter().flat_map(|v| v.iter()).any(|x| x == k) {
                                     Some(vec![format!(
                                         "object doesn't contain the required property {:?}",
                                         k

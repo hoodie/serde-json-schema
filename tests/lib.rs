@@ -141,6 +141,25 @@ mod spec {
     use serde_json_schema::*;
     use std::convert::TryFrom;
 
+    #[test]
+    fn required_not_required() {
+        let raw_schema = r#"{
+  "$id": "https://example.com/address.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "type": "object",
+  "properties": {
+  },
+  "dependencies": {
+    "post-office-box": [ "street-address" ],
+    "extended-address": [ "street-address" ]
+  }
+
+    }"#;
+        let schema = Schema::try_from(raw_schema).unwrap();
+        assert!(schema.specification().is_some())
+    }
+
     /// https://json-schema.org/latest/json-schema-core.html#rfc.section.8.1
     #[test]
     #[should_panic]
