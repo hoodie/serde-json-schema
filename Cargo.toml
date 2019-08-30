@@ -3,7 +3,13 @@ name = "serde-json-schema"
 version = "0.1.0"
 authors = ["Hendrik Sollich <hendrik@hoodie.de>"]
 repository = "https://github.com/hoodie/serde-json-schema"
+homepage = "https://github.com/hoodie/serde-json-schema"
 edition = "2018"
+documentation = "https://docs.rs/serde-json-schema"
+
+include = [
+  "README.md",
+]
 
 [dependencies]
 json-pointer = "0.3"

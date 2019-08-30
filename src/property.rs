@@ -1,13 +1,16 @@
+//! Represents the [Instance Data Model](https://json-schema.org/latest/json-schema-core.html#rfc.section.4.2.1)
 
-use crate::validation::*;
 use serde::{Deserialize, Serialize};
+
 use std::collections::HashMap;
 
-/// Either a `SchemaInstance` or a reference
+use crate::validation::NumberCriteria;
+
+/// Either a `PropertyInstance` or a reference
 #[serde(untagged)]
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Property {
-    Value(SchemaInstance),
+    Value(PropertyInstance),
     Ref(RefProperty),
 }
 /// TODO: implement dereferencing
@@ -17,11 +20,10 @@ pub struct RefProperty {
     pub reference: String,
 }
 
-/// prepresents the [Instance Data Model](https://json-schema.org/latest/json-schema-core.html#rfc.section.4.2.1)
-/// TODO: deprecate this as soon as dereferencing is implemented
+/// Represents the [Instance Data Model](https://json-schema.org/latest/json-schema-core.html#rfc.section.4.2.1)
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
-pub enum SchemaInstance {
+pub enum PropertyInstance {
     Null,
 
     Boolean(bool),
@@ -36,7 +38,7 @@ pub enum SchemaInstance {
     },
 
     Array {
-        items: Box<SchemaInstance>,
+        items: Box<PropertyInstance>,
     },
 
     Number {
@@ -47,11 +49,11 @@ pub enum SchemaInstance {
     String,
 }
 
-impl SchemaInstance {
+impl PropertyInstance {
     /// TODO: implement [validation](https://json-schema.org/latest/json-schema-validation.html)
     pub fn validate(&self, json: &serde_json::Value) -> Result<(), Vec<String>> {
         use serde_json::Value;
-        use SchemaInstance::*;
+        use PropertyInstance::*;
 
         match (&self, json) {
             (Null, Value::Null) => Ok(()),

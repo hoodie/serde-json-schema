@@ -23,12 +23,12 @@ use std::collections::HashMap;
 use std::convert::TryFrom;
 
 pub mod id;
-mod specification;
+pub mod error;
+pub mod property;
 mod validation;
 
-use specification::*;
-
-use crate::id::SchemaId;
+use crate::id::*;
+use crate::property::*;
 
 /// Represents a full JSON Schema Document
 // TODO: root array vs object
@@ -46,27 +46,6 @@ enum SchemaInner {
     Boolean(bool),
 }
 
-/// Represents a full JSON Schema Document
-// TODO: root array vs object
-#[derive(Debug, Serialize, Deserialize)]
-struct SchemaDefinition {
-    #[serde(rename = "$id")]
-    //id: Option<Url>,
-    id: Option<SchemaId>,
-
-    #[serde(rename = "$schema")]
-    schema: Option<Url>,
-    description: Option<String>,
-    // pub properties: HashMap<String, Property>,
-    dependencies: Option<HashMap<String, Vec<String>>>,
-
-    #[serde(flatten)]
-    specification: Option<Property>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    definitions: Option<HashMap<String, SchemaDefinition>>,
-}
-
 impl Schema {
     pub fn draft_version(&self) -> Option<&str> {
         match &self.0 {
@@ -82,7 +61,7 @@ impl Schema {
 
     fn as_definition(&self) -> Option<&SchemaDefinition> {
         match &self.0 {
-            SchemaInner::Schema(definition@SchemaDefinition { .. }) => Some(&definition),
+            SchemaInner::Schema(definition @ SchemaDefinition { .. }) => Some(&definition),
             _ => None,
         }
     }
@@ -96,13 +75,14 @@ impl Schema {
     }
 
     pub fn description(&self) -> Option<&str> {
-        self.as_definition().and_then(|d| d.description.as_ref().map(|s| s.as_str()))
+        self.as_definition()
+            .and_then(|d| d.description.as_ref().map(|s| s.as_str()))
     }
 
-    pub fn specification(&self) -> Option<&SchemaInstance> {
+    pub fn specification(&self) -> Option<&PropertyInstance> {
         match &self.0 {
             SchemaInner::Schema(SchemaDefinition {
-                specification: Some(Property::Value(specification @ SchemaInstance::Object { .. })),
+                specification: Some(Property::Value(specification @ PropertyInstance::Object { .. })),
                 ..
             }) => Some(&specification),
             _ => None,
@@ -111,56 +91,56 @@ impl Schema {
 
     pub fn properties(&self) -> Option<&HashMap<String, Property>> {
         match self.specification() {
-            Some(SchemaInstance::Object { properties, .. }) => Some(properties),
+            Some(PropertyInstance::Object { properties, .. }) => Some(properties),
             _ => None,
         }
     }
 
     pub fn required_properties(&self) -> Option<&Vec<String>> {
         match self.specification() {
-            Some(SchemaInstance::Object { required, .. }) => required.as_ref(),
+            Some(PropertyInstance::Object { required, .. }) => required.as_ref(),
             _ => None,
         }
     }
 
-    pub fn as_null(&self) -> Option<&SchemaInstance> {
+    pub fn as_null(&self) -> Option<&PropertyInstance> {
         match self.specification() {
-            Some(null @ SchemaInstance::Null) => Some(null),
+            Some(null @ PropertyInstance::Null) => Some(null),
             _ => None,
         }
     }
 
-    pub fn as_boolean(&self) -> Option<&SchemaInstance> {
+    pub fn as_boolean(&self) -> Option<&PropertyInstance> {
         match self.specification() {
-            Some(boolean @ SchemaInstance::Boolean(_)) => Some(boolean),
+            Some(boolean @ PropertyInstance::Boolean(_)) => Some(boolean),
             _ => None,
         }
     }
 
-    pub fn as_integer(&self) -> Option<&SchemaInstance> {
+    pub fn as_integer(&self) -> Option<&PropertyInstance> {
         match self.specification() {
-            Some(integer @ SchemaInstance::Integer { .. }) => Some(integer),
+            Some(integer @ PropertyInstance::Integer { .. }) => Some(integer),
             _ => None,
         }
     }
 
-    pub fn as_object(&self) -> Option<&SchemaInstance> {
+    pub fn as_object(&self) -> Option<&PropertyInstance> {
         match self.specification() {
-            Some(object @ SchemaInstance::Object { .. }) => Some(object),
+            Some(object @ PropertyInstance::Object { .. }) => Some(object),
             _ => None,
         }
     }
 
-    pub fn as_array(&self) -> Option<&SchemaInstance> {
+    pub fn as_array(&self) -> Option<&PropertyInstance> {
         match self.specification() {
-            Some(array @ SchemaInstance::Array { .. }) => Some(array),
+            Some(array @ PropertyInstance::Array { .. }) => Some(array),
             _ => None,
         }
     }
 
-    pub fn as_number(&self) -> Option<&SchemaInstance> {
+    pub fn as_number(&self) -> Option<&PropertyInstance> {
         match self.specification() {
-            Some(number @ SchemaInstance::Number { .. }) => Some(number),
+            Some(number @ PropertyInstance::Number { .. }) => Some(number),
             _ => None,
         }
     }
@@ -213,4 +193,23 @@ impl<'a> TryFrom<String> for SchemaDefinition {
     fn try_from(s: String) -> Result<SchemaDefinition, Self::Error> {
         serde_json::from_str(&s)
     }
+}
+
+/// Represents a full JSON Schema Document, except when it is a boolean
+#[derive(Debug, Serialize, Deserialize)]
+pub(crate) struct SchemaDefinition {
+    #[serde(rename = "$id")]
+    pub id: Option<SchemaId>,
+
+    #[serde(rename = "$schema")]
+    pub schema: Option<Url>,
+    pub description: Option<String>,
+    // pub properties: HashMap<String, Property>,
+    pub dependencies: Option<HashMap<String, Vec<String>>>,
+
+    #[serde(flatten)]
+    pub specification: Option<Property>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub definitions: Option<HashMap<String, SchemaDefinition>>,
 }

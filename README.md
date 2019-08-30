@@ -11,9 +11,11 @@ Minimal implementation of [json-schema](https://json-schema.org/specification.ht
 ## Features/TODO
 
 * [x] JSON Schema Core Type
-* [ ] JSON Schema Validation (possibly different crate)
-* [ ] Codegen (definately different crate)
-* [ ] RootSchema vs SubSchema handling]()
+* [ ] JSON Schema Validation (partial, possibly different crate or optional feature)
+* [ ] Codegen (definitely different crate)
+* [ ] RootSchema vs SubSchema handling (is that used often?)
+* [ ] References
+* [ ] Test Serialization
 * [ ] Complete Feature List
 
 ## License

@@ -1,3 +1,5 @@
+//! Everything related to parsing schemaId
+
 use json_pointer::JsonPointer;
 use serde::de::{self, Deserialize, Deserializer, Visitor};
 use serde::ser::{Serialize, Serializer};
@@ -5,6 +7,8 @@ use url::Url;
 
 use std::fmt;
 use std::str::FromStr;
+
+use crate::error::{InvalidFragment, InvalidPath};
 
 /// Either a `Url` or a `JsonPointer`
 #[derive(Debug)]
@@ -17,8 +21,6 @@ pub enum SchemaId {
 
 #[derive(Debug)]
 pub struct Fragment(String);
-#[derive(Debug)]
-pub struct InvalidFragment;
 
 impl FromStr for Fragment {
     type Err = InvalidFragment;
@@ -39,8 +41,6 @@ impl ToString for Fragment {
 
 #[derive(Debug)]
 pub struct Path(String);
-#[derive(Debug)]
-pub struct InvalidPath;
 
 impl FromStr for Path {
     type Err = InvalidPath;
@@ -77,7 +77,7 @@ impl<'de> Visitor<'de> for SchemaIdVisitor {
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
             formatter,
-            "a string that follows that \"/Date(...)/\" format "
+            "a string that is either a Url, JsonPointer or Path"
         )
     }
 
