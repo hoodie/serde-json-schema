@@ -145,7 +145,7 @@ impl Schema {
         }
     }
 
-    pub fn validate(&self, json: &serde_json::Value) -> Result<(), Vec<String>> {
+    pub fn validate(&self, json: &serde_json::Value) -> std::result::Result<(), Vec<String>> {
         match self.0 {
             SchemaInner::Schema(SchemaDefinition {
                 specification: Some(Property::Value(ref prop)),
@@ -168,30 +168,30 @@ impl Schema {
 }
 
 impl<'a> TryFrom<&str> for Schema {
-    type Error = serde_json::error::Error;
-    fn try_from(s: &str) -> Result<Schema, Self::Error> {
-        serde_json::from_str(s)
+    type Error = crate::error::Error;
+    fn try_from(s: &str) -> Result<Schema> {
+        Ok(serde_json::from_str(s)?)
     }
 }
 
 impl<'a> TryFrom<String> for Schema {
-    type Error = serde_json::error::Error;
-    fn try_from(s: String) -> Result<Schema, Self::Error> {
-        serde_json::from_str(&s)
+    type Error = crate::error::Error;
+    fn try_from(s: String) -> Result<Schema> {
+        Ok(serde_json::from_str(&s)?)
     }
 }
 
 impl<'a> TryFrom<&str> for SchemaDefinition {
-    type Error = serde_json::error::Error;
-    fn try_from(s: &str) -> Result<SchemaDefinition, Self::Error> {
-        serde_json::from_str(s)
+    type Error = crate::error::Error;
+    fn try_from(s: &str) -> Result<SchemaDefinition> {
+        Ok(serde_json::from_str(&s)?)
     }
 }
 
 impl<'a> TryFrom<String> for SchemaDefinition {
-    type Error = serde_json::error::Error;
-    fn try_from(s: String) -> Result<SchemaDefinition, Self::Error> {
-        serde_json::from_str(&s)
+    type Error = crate::error::Error;
+    fn try_from(s: String) -> Result<SchemaDefinition> {
+        Ok(serde_json::from_str(&s)?)
     }
 }
 
