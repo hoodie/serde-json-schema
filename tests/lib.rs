@@ -2,7 +2,6 @@ mod basics {
     /// validating the "basics" from https://json-schema.org/understanding-json-schema/basics.html
     use serde_json::json;
     use serde_json_schema::*;
-    use std::convert::TryFrom;
 
     #[test]
     fn basics() {
@@ -30,7 +29,6 @@ mod basics {
 mod numbers {
     use serde_json::json;
     use serde_json_schema::*;
-    use std::convert::TryFrom;
 
     #[test]
     fn number_spec() {
@@ -110,7 +108,7 @@ mod examples {
         let value: serde_json::Value = serde_json::from_str(raw).unwrap();
         let schema: Schema = serde_json::from_str(raw).unwrap();
 
-        let schema2 = Schema::from_value(value).unwrap();
+        let schema2 = Schema::try_from(value).unwrap();
 
         assert_eq!(schema, schema2);
         println!("{:#?}", schema);
@@ -151,7 +149,6 @@ mod examples {
 
 mod spec {
     use serde_json_schema::*;
-    use std::convert::TryFrom;
 
     #[test]
     fn required_not_required() {

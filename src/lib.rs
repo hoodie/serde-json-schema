@@ -177,9 +177,12 @@ impl Schema {
             _ => Ok(()),
         }
     }
+}
 
-    pub fn from_value(value: serde_json::Value) -> Result<Self> {
-        Ok(serde_json::from_value(value)?)
+impl<'a> TryFrom<serde_json::Value> for Schema {
+    type Error = crate::error::Error;
+    fn try_from(v: serde_json::Value) -> Result<Schema> {
+        Ok(serde_json::from_value(v)?)
     }
 }
 
