@@ -11,7 +11,7 @@ use std::str::FromStr;
 use crate::error::{InvalidFragment, InvalidPath};
 
 /// Either a `Url` or a `JsonPointer`
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum SchemaId {
     Url(Url),
     Pointer(JsonPointer<String, Vec<String>>),
@@ -19,7 +19,7 @@ pub enum SchemaId {
     Path(Path),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Fragment(String);
 
 impl FromStr for Fragment {
@@ -39,7 +39,7 @@ impl ToString for Fragment {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Path(String);
 
 impl FromStr for Path {

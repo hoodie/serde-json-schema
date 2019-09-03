@@ -105,6 +105,18 @@ mod examples {
     }
 
     #[test]
+    fn from_json_value() {
+        let raw = include_str!("./fixtures/address.schema.json");
+        let value: serde_json::Value = serde_json::from_str(raw).unwrap();
+        let schema: Schema = serde_json::from_str(raw).unwrap();
+
+        let schema2 = Schema::from_value(value).unwrap();
+
+        assert_eq!(schema, schema2);
+        println!("{:#?}", schema);
+    }
+
+    #[test]
     fn calendar_example() {
         let raw = include_str!("./fixtures/calendar.schema.json");
         let schema: Schema = serde_json::from_str(raw).unwrap();

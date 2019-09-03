@@ -16,28 +16,39 @@
 //! # }
 //! ```
 
+#![deny(
+    missing_copy_implementations,
+    trivial_casts,
+    trivial_numeric_casts,
+    unsafe_code,
+    unused_import_braces,
+    unused_qualifications
+)]
+// #![warn(missing_docs)]
+
 use serde::{Deserialize, Serialize};
 pub use url::Url;
 
 use std::collections::HashMap;
-use std::convert::TryFrom;
+pub use std::convert::TryFrom;
 
-pub mod id;
 pub mod error;
+pub mod id;
 pub mod property;
 mod validation;
 
+use crate::error::Result;
 use crate::id::*;
 use crate::property::*;
 
 /// Represents a full JSON Schema Document
 // TODO: root array vs object
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Schema(SchemaInner);
 
 /// Represents a full JSON Schema Document
 // TODO: root array vs object
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
 enum SchemaInner {
     /// The Common case
@@ -82,7 +93,8 @@ impl Schema {
     pub fn specification(&self) -> Option<&PropertyInstance> {
         match &self.0 {
             SchemaInner::Schema(SchemaDefinition {
-                specification: Some(Property::Value(specification @ PropertyInstance::Object { .. })),
+                specification:
+                    Some(Property::Value(specification @ PropertyInstance::Object { .. })),
                 ..
             }) => Some(&specification),
             _ => None,
@@ -165,6 +177,10 @@ impl Schema {
             _ => Ok(()),
         }
     }
+
+    pub fn from_value(value: serde_json::Value) -> Result<Self> {
+        Ok(serde_json::from_value(value)?)
+    }
 }
 
 impl<'a> TryFrom<&str> for Schema {
@@ -196,7 +212,7 @@ impl<'a> TryFrom<String> for SchemaDefinition {
 }
 
 /// Represents a full JSON Schema Document, except when it is a boolean
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub(crate) struct SchemaDefinition {
     #[serde(rename = "$id")]
     pub id: Option<SchemaId>,

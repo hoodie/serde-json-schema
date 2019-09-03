@@ -1,6 +1,4 @@
-use serde_json;
-use serde_json_schema::Schema;
-use std::convert::TryFrom;
+use serde_json_schema::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     use std::fs;
