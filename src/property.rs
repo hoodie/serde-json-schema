@@ -8,20 +8,20 @@ use crate::validation::NumberCriteria;
 
 /// Either a `PropertyInstance` or a reference
 #[serde(untagged)]
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum Property {
     Value(PropertyInstance),
     Ref(RefProperty),
 }
 /// TODO: implement dereferencing
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct RefProperty {
     #[serde(rename = "$ref")]
     pub reference: String,
 }
 
 /// Represents the [Instance Data Model](https://json-schema.org/latest/json-schema-core.html#rfc.section.4.2.1)
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum PropertyInstance {
     Null,

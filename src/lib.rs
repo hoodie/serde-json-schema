@@ -43,12 +43,12 @@ use crate::property::*;
 
 /// Represents a full JSON Schema Document
 // TODO: root array vs object
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Schema(SchemaInner);
 
 /// Represents a full JSON Schema Document
 // TODO: root array vs object
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
 enum SchemaInner {
     /// The Common case
@@ -212,7 +212,7 @@ impl<'a> TryFrom<String> for SchemaDefinition {
 }
 
 /// Represents a full JSON Schema Document, except when it is a boolean
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub(crate) struct SchemaDefinition {
     #[serde(rename = "$id")]
     pub id: Option<SchemaId>,
