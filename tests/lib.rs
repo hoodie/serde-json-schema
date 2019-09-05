@@ -384,3 +384,63 @@ mod validation {
         schema.validate(&json_missing).unwrap();
     }
 }
+
+mod suite {
+    use serde::{Deserialize, Serialize};
+    use serde_json_schema::*;
+
+    #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+    struct Suite {
+        description: String,
+        schema: Schema,
+        tests: Vec<Test>,
+    }
+
+    #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+    struct Test {
+        description: String,
+        data: serde_json::Value,
+        valid: bool,
+    }
+
+    #[test]
+    fn suite_dialect1() {
+        let raw_suite = include_str!("./fixtures/geographical-location.schema.json");
+        let schema: Schema = serde_json::from_str(raw_suite).unwrap();
+        println!("{:#?}", schema);
+        println!("{}", serde_json::to_string_pretty(&schema).unwrap());
+    }
+
+    #[test]
+    fn suite_dialect2() {
+        let raw_suite = include_str!("./test-suite/tests/draft7/required.json");
+        let suites: Vec<Suite> = serde_json::from_str(raw_suite).unwrap();
+        let one = suites.get(0).unwrap().clone().schema;
+        println!("{:#?}", one);
+        println!("{}", serde_json::to_string_pretty(&one).unwrap());
+    }
+
+    #[test]
+    #[ignore]
+    fn suite_required() {
+        let raw_suite = include_str!("./test-suite/tests/draft7/required.json");
+
+        let suites: Vec<Suite> = serde_json::from_str(raw_suite).unwrap();
+        for suite in &suites {
+            println!("\n\n{:?}", suite.description);
+            println!("{:#?}", suite.schema);
+            for test in &suite.tests {
+                if suite.schema.validate(&test.data).is_ok() != test.valid {
+                    println!(
+                        "{suite}::{test} expected to validate to {expected:?}",
+                        suite = suite.description,
+                        test = test.description,
+                        expected = test.valid,
+                    );
+                }
+            }
+            // println!("{:}", serde_json::to_string_pretty(&test.schema).unwrap());
+        }
+    }
+
+}
