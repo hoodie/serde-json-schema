@@ -97,6 +97,10 @@ impl Schema {
                     Some(Property::Value(specification @ PropertyInstance::Object { .. })),
                 ..
             }) => Some(&specification),
+            SchemaInner::Schema(SchemaDefinition {
+                specification: Some(Property::Value(specification @ PropertyInstance::Array { .. })),
+                ..
+            }) => Some(&specification),
             _ => None,
         }
     }
