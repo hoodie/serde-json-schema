@@ -124,7 +124,7 @@ impl Schema {
 
     pub fn as_boolean(&self) -> Option<&PropertyInstance> {
         match self.specification() {
-            Some(boolean @ PropertyInstance::Boolean(_)) => Some(boolean),
+            Some(boolean @ PropertyInstance::Boolean) => Some(boolean),
             _ => None,
         }
     }

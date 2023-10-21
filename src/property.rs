@@ -26,7 +26,7 @@ pub struct RefProperty {
 pub enum PropertyInstance {
     Null,
 
-    Boolean(bool),
+    Boolean,
 
     Integer {
         #[serde(flatten)]
@@ -61,8 +61,8 @@ impl PropertyInstance {
                 Err(vec![format!("expected null found {:?}", unexpected_value)])
             }
 
-            (Boolean(_), Value::Bool(_)) => Ok(()),
-            (Boolean(_), unexpected_value) => Err(vec![format!(
+            (Boolean, Value::Bool(_)) => Ok(()),
+            (Boolean, unexpected_value) => Err(vec![format!(
                 "expected boolean found {:?}",
                 unexpected_value
             )]),
