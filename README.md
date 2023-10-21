@@ -17,6 +17,8 @@ Minimal implementation of [json-schema](https://json-schema.org/specification.ht
 * [ ] References
 * [ ] Test Serialization
 * [ ] Complete Feature List
+* [ ] Detect enum
+* [ ] Detect const
 
 ## License
 
