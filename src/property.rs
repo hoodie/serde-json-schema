@@ -7,8 +7,8 @@ use std::{collections::HashMap, str::Split};
 use crate::{validation::NumberCriteria, Schema};
 
 /// Either a `PropertyInstance` or a reference
-#[serde(untagged)]
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(untagged)]
 pub enum Property {
     Value(PropertyInstance),
     Ref(RefProperty),
@@ -30,10 +30,7 @@ enum Data<'a> {
 
 fn get_items(p: &Property) -> Option<&PropertyInstance> {
     match p {
-        Property::Value(v) => match v {
-            PropertyInstance::Array { items } => Some(&**items),
-            _ => None,
-        },
+        Property::Value(PropertyInstance::Array { items }) => Some(&**items),
         _ => None,
     }
 }
@@ -52,7 +49,7 @@ fn get_properties(p: &Property) -> Option<&HashMap<String, Property>> {
     }
 }
 
-fn find_ref<'a>(mut path: Split<'a, &'a str>, mut data: Data<'a>) -> Option<Data<'a>> {
+fn find_ref<'a>(mut path: Split<'a, char>, mut data: Data<'a>) -> Option<Data<'a>> {
     loop {
         let Some(branch) = path.next() else {
             return Some(data);
@@ -60,9 +57,9 @@ fn find_ref<'a>(mut path: Split<'a, &'a str>, mut data: Data<'a>) -> Option<Data
         data = match (branch, data) {
             ("properties", Data::Instance(v)) => Data::Map(get_properties_instance(v)?),
             ("properties", Data::Map(v)) => Data::Map(get_properties(v.get(branch)?)?),
-            ("properties", Data::Prop(v)) => Data::Map(get_properties(&v)?),
+            ("properties", Data::Prop(v)) => Data::Map(get_properties(v)?),
             ("properties", Data::Schema(v)) => Data::Map(v.properties()?),
-            ("items", Data::Prop(v)) => Data::Instance(get_items(&v)?),
+            ("items", Data::Prop(v)) => Data::Instance(get_items(v)?),
             (_, Data::Map(v)) => Data::Prop(v.get(branch)?),
             _ => return None,
         };
@@ -72,7 +69,7 @@ fn find_ref<'a>(mut path: Split<'a, &'a str>, mut data: Data<'a>) -> Option<Data
 impl RefProperty {
     pub fn deref<'a>(&'a self, schema: &'a Schema) -> Option<&PropertyInstance> {
         let reference = self.reference.strip_prefix("#/")?;
-        let path = reference.split("/").into_iter();
+        let path = reference.split('/');
         match find_ref(path, Data::Schema(schema))? {
             Data::Prop(v) => match v {
                 Property::Ref(v) => Some(v.deref(schema)?),
@@ -152,7 +149,7 @@ impl PropertyInstance {
             (Array { items }, Value::Array(elems)) => {
                 let errors: Vec<std::string::String> = elems
                     .iter()
-                    .map(|value| items.validate(&value))
+                    .map(|value| items.validate(value))
                     .filter_map(Result::err)
                     .flat_map(|errors| errors.into_iter())
                     .collect();

@@ -234,10 +234,10 @@ mod spec {
     /// https://json-schema.org/latest/json-schema-core.html#rfc.section.8.2
     #[test]
     fn id_may_be_a_path() {
-        let raw_schema = r##"{
+        let raw_schema = r#"{
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "t/inner.json"
-    }"##;
+    }"#;
         let schema = Schema::try_from(raw_schema).unwrap();
         println!("{:#?}", schema);
     }
@@ -295,7 +295,7 @@ mod spec {
     #[test]
     #[ignore]
     fn subschema_no_ids() {
-        let raw_schema = r##"{
+        let raw_schema = r#"{
         "definitions": {
             "A": {},
             "B": {
@@ -305,7 +305,7 @@ mod spec {
             "C": {
             }
         }
-    }"##;
+    }"#;
 
         let schema = Schema::try_from(raw_schema).unwrap();
         println!("{:#?}", schema);

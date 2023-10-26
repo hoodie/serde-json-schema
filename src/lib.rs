@@ -72,7 +72,7 @@ impl Schema {
 
     fn as_definition(&self) -> Option<&SchemaDefinition> {
         match &self.0 {
-            SchemaInner::Schema(definition @ SchemaDefinition { .. }) => Some(&definition),
+            SchemaInner::Schema(definition @ SchemaDefinition { .. }) => Some(definition),
             _ => None,
         }
     }
@@ -86,8 +86,7 @@ impl Schema {
     }
 
     pub fn description(&self) -> Option<&str> {
-        self.as_definition()
-            .and_then(|d| d.description.as_ref().map(|s| s.as_str()))
+        self.as_definition().and_then(|d| d.description.as_deref())
     }
 
     pub fn specification(&self) -> Option<&PropertyInstance> {
@@ -96,11 +95,11 @@ impl Schema {
                 specification:
                     Some(Property::Value(specification @ PropertyInstance::Object { .. })),
                 ..
-            }) => Some(&specification),
+            }) => Some(specification),
             SchemaInner::Schema(SchemaDefinition {
                 specification: Some(Property::Value(specification @ PropertyInstance::Array { .. })),
                 ..
-            }) => Some(&specification),
+            }) => Some(specification),
             _ => None,
         }
     }
@@ -176,42 +175,42 @@ impl Schema {
                 Ok(())
             }
             SchemaInner::Boolean(false) => Err(vec![String::from(
-                r##""the scheme "false" will never validate"##,
+                r#""the scheme "false" will never validate"#,
             )]),
             _ => Ok(()),
         }
     }
 }
 
-impl<'a> TryFrom<serde_json::Value> for Schema {
+impl TryFrom<serde_json::Value> for Schema {
     type Error = crate::error::Error;
     fn try_from(v: serde_json::Value) -> Result<Schema> {
         Ok(serde_json::from_value(v)?)
     }
 }
 
-impl<'a> TryFrom<&str> for Schema {
+impl TryFrom<&str> for Schema {
     type Error = crate::error::Error;
     fn try_from(s: &str) -> Result<Schema> {
         Ok(serde_json::from_str(s)?)
     }
 }
 
-impl<'a> TryFrom<String> for Schema {
+impl TryFrom<String> for Schema {
     type Error = crate::error::Error;
     fn try_from(s: String) -> Result<Schema> {
         Ok(serde_json::from_str(&s)?)
     }
 }
 
-impl<'a> TryFrom<&str> for SchemaDefinition {
+impl TryFrom<&str> for SchemaDefinition {
     type Error = crate::error::Error;
     fn try_from(s: &str) -> Result<SchemaDefinition> {
-        Ok(serde_json::from_str(&s)?)
+        Ok(serde_json::from_str(s)?)
     }
 }
 
-impl<'a> TryFrom<String> for SchemaDefinition {
+impl TryFrom<String> for SchemaDefinition {
     type Error = crate::error::Error;
     fn try_from(s: String) -> Result<SchemaDefinition> {
         Ok(serde_json::from_str(&s)?)
