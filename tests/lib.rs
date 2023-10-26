@@ -93,7 +93,10 @@ mod numbers {
 }
 
 mod examples {
-    use serde_json_schema::*;
+    use serde_json_schema::{
+        property::{Property, PropertyInstance},
+        *,
+    };
 
     #[test]
     fn address_example() {
@@ -134,6 +137,24 @@ mod examples {
             serde_json::from_str(include_str!("./fixtures/card.schema.json")).unwrap();
         println!("{:#?}", schema.draft_version());
         assert_eq!(schema.draft_version(), Some("draft-07"))
+    }
+
+    #[test]
+    fn get_ref() {
+        let schema: Schema =
+            serde_json::from_str(include_str!("./fixtures/ref.schema.json")).unwrap();
+        let spec = schema.properties().unwrap();
+        let refer = spec.get("Cookie").unwrap();
+        let property = match refer {
+            Property::Ref(v) => v.deref(&schema),
+            _ => None,
+        };
+        assert!(property.is_some());
+        let data = match property.unwrap() {
+            PropertyInstance::String => Some(()),
+            _ => None,
+        };
+        assert!(data.is_some());
     }
 
     #[test]
