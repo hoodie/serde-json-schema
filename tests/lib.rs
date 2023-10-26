@@ -137,6 +137,14 @@ mod examples {
     }
 
     #[test]
+    fn any_array() {
+        let schema: Schema =
+            serde_json::from_str(include_str!("./fixtures/any.schema.json")).unwrap();
+        let spec = schema.specification();
+        assert!(spec.is_some())
+    }
+
+    #[test]
     fn green_door_example() {
         let schema: Schema =
             serde_json::from_str(include_str!("./fixtures/green_door.schema.json")).unwrap();
