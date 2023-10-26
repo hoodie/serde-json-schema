@@ -1,6 +1,6 @@
 [package]
 name = "serde-json-schema"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Hendrik Sollich <hendrik@hoodie.de>"]
 repository = "https://github.com/hoodie/serde-json-schema"
 edition = "2018"
