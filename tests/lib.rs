@@ -33,7 +33,7 @@ mod numbers {
     #[test]
     fn number_spec() {
         let raw_schema: &str = r#"{
-    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
     "title": "Product",
     "description": "A product from Acme's catalog",
     "type": "number"
@@ -50,7 +50,7 @@ mod numbers {
     #[should_panic]
     fn number_spec_negative() {
         let raw_schema: &str = r#"{
-    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
     "title": "Product",
     "description": "A product from Acme's catalog",
     "type": "number"
@@ -65,8 +65,8 @@ mod numbers {
     #[test]
     fn number_types() {
         let raw_schema: &str = r#"{
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "http://example.com/product.schema.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://example.com/product.schema.json",
     "title": "Product",
     "description": "A product from Acme's catalog",
     "type": "object",
@@ -133,7 +133,7 @@ mod examples {
         let schema: Schema =
             serde_json::from_str(include_str!("./fixtures/card.schema.json")).unwrap();
         println!("{:#?}", schema.draft_version());
-        assert_eq!(schema.draft_version(), Some("draft-07"))
+        assert_eq!(schema.draft_version(), Some("draft"))
     }
 
     #[test]
@@ -154,12 +154,12 @@ mod spec {
     fn required_not_required() {
         let raw_schema = r#"{
   "$id": "https://example.com/address.schema.json",
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "description": "An address similar to http://microformats.org/wiki/h-card",
   "type": "object",
   "properties": {
   },
-  "dependencies": {
+  "dependentRequired": {
     "post-office-box": [ "street-address" ],
     "extended-address": [ "street-address" ]
   }
@@ -169,7 +169,7 @@ mod spec {
         assert!(schema.specification().is_some())
     }
 
-    /// https://json-schema.org/latest/json-schema-core.html#rfc.section.8.1
+    /// https://json-schema.org/draft/2020-12/json-schema-core.html#section-8.1
     #[test]
     #[should_panic]
     fn schema_must_be_a_url() {
@@ -188,12 +188,12 @@ mod spec {
         Schema::try_from(raw_schema).unwrap();
     }
 
-    /// https://json-schema.org/latest/json-schema-core.html#rfc.section.8.2
+    /// https://json-schema.org/draft/2020-12/json-schema-core.html#section-8.2
     #[test]
     #[should_panic]
     fn id_must_not_contain_spaces() {
         let raw_schema = r#"{
-    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "not a uri",
     "description": "A product from Acme's catalog",
     "type": "object",
@@ -209,44 +209,44 @@ mod spec {
         println!("{:#?}", schema);
     }
 
-    /// https://json-schema.org/latest/json-schema-core.html#rfc.section.8.2
+    /// https://json-schema.org/draft/2020-12/json-schema-core.html#section-8.2
     #[test]
     fn id_may_be_a_uuid() {
         let raw_schema = r#"{
-    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "urn:uuid:ee564b8a-7a87-4125-8c96-e9f123d6766f"
     }"#;
         let schema = Schema::try_from(raw_schema).unwrap();
         println!("{:#?}", schema);
     }
 
-    /// https://json-schema.org/latest/json-schema-core.html#rfc.section.8.2
+    /// https://json-schema.org/draft/2020-12/json-schema-core.html#section-8.2
     #[test]
     fn id_may_be_a_fragment() {
         let raw_schema = r##"{
-    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "#foo"
     }"##;
         let schema = Schema::try_from(raw_schema).unwrap();
         println!("{:#?}", schema);
     }
 
-    /// https://json-schema.org/latest/json-schema-core.html#rfc.section.8.2
+    /// https://json-schema.org/draft/2020-12/json-schema-core.html#section-8.2
     #[test]
     fn id_may_be_a_path() {
         let raw_schema = r#"{
-    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "t/inner.json"
     }"#;
         let schema = Schema::try_from(raw_schema).unwrap();
         println!("{:#?}", schema);
     }
 
-    /// https://json-schema.org/latest/json-schema-core.html#rfc.section.8.2
+    /// https://json-schema.org/draft/2020-12/json-schema-core.html#section-8.2
     #[test]
     fn id_is_optional() {
         let raw_schema = r#"{
-    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
     "description": "A product from Acme's catalog",
     "type": "object",
     "properties": {
@@ -263,18 +263,19 @@ mod spec {
         assert!(schema.id().is_none());
     }
 
-    /// https://json-schema.org/latest/json-schema-core.html#rfc.section.8.2.4
+    /// https://json-schema.org/draft/2020-12/json-schema-core.html#section-8.2.4
     ///
-    /// TODO: definitions are not yet implemented
+    /// JSON Schema 2020-12 uses $defs instead of definitions
     #[test]
     fn subschema() {
         let raw_schema = r##"{
-        "$id": "http://example.com/root.json",
-        "definitions": {
+        "$id": "https://example.com/root.json",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$defs": {
             "A": { "$id": "#foo" },
             "B": {
                 "$id": "other.json",
-                "definitions": {
+                "$defs": {
                     "X": { "$id": "#bar" },
                     "Y": { "$id": "t/inner.json" }
                 }
@@ -289,17 +290,17 @@ mod spec {
         println!("{:#?}", schema);
     }
 
-    /// https://json-schema.org/latest/json-schema-core.html#rfc.section.8.2.4
+    /// https://json-schema.org/draft/2020-12/json-schema-core.html#section-8.2.4
     ///
-    /// TODO: definitions are not yet implemented
+    /// JSON Schema 2020-12 uses $defs instead of definitions
     #[test]
     #[ignore]
     fn subschema_no_ids() {
         let raw_schema = r#"{
-        "definitions": {
+        "$defs": {
             "A": {},
             "B": {
-                "definitions": {
+                "$defs": {
                 }
             },
             "C": {
@@ -382,5 +383,215 @@ mod validation {
                 .unwrap();
         // TODO: make more concrete error type
         schema.validate(&json_missing).unwrap();
+    }
+}
+
+/// Tests for JSON Schema 2020-12 specific features
+mod json_schema_2020_12 {
+    use serde_json::json;
+    use serde_json_schema::*;
+
+    /// Test prefixItems for tuple validation (2020-12 feature)
+    #[test]
+    fn prefix_items() {
+        let raw_schema = r#"{
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "array",
+            "prefixItems": [
+                { "type": "string" },
+                { "type": "integer" }
+            ],
+            "items": { "type": "boolean" }
+        }"#;
+
+        let schema = Schema::try_from(raw_schema).unwrap();
+        println!("{:#?}", schema);
+
+        // Valid: matches prefixItems types
+        schema.validate(&json!(["hello", 42])).unwrap();
+        // Valid: extra items match items schema
+        schema.validate(&json!(["hello", 42, true, false])).unwrap();
+    }
+
+    /// Test $anchor keyword (2020-12 feature)
+    #[test]
+    fn anchor() {
+        let raw_schema = r#"{
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "$id": "https://example.com/schemas/address",
+            "$anchor": "address",
+            "type": "object",
+            "properties": {
+                "street": { "type": "string" }
+            }
+        }"#;
+
+        let schema = Schema::try_from(raw_schema).unwrap();
+        println!("{:#?}", schema);
+    }
+
+    /// Test $dynamicAnchor and $dynamicRef (2020-12 feature)
+    #[test]
+    fn dynamic_anchor() {
+        let raw_schema = r#"{
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "$id": "https://example.com/schemas/base",
+            "$dynamicAnchor": "node",
+            "type": "object"
+        }"#;
+
+        let schema = Schema::try_from(raw_schema).unwrap();
+        println!("{:#?}", schema);
+    }
+
+    /// Test $vocabulary (2020-12 meta-schema feature)
+    #[test]
+    fn vocabulary() {
+        let raw_schema = r#"{
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "$vocabulary": {
+                "https://json-schema.org/draft/2020-12/vocab/core": true,
+                "https://json-schema.org/draft/2020-12/vocab/applicator": true,
+                "https://json-schema.org/draft/2020-12/vocab/validation": true
+            }
+        }"#;
+
+        let schema = Schema::try_from(raw_schema).unwrap();
+        println!("{:#?}", schema);
+    }
+
+    /// Test $comment (included in 2020-12)
+    #[test]
+    fn comment() {
+        let raw_schema = r#"{
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "$comment": "This is a comment explaining the schema",
+            "type": "string"
+        }"#;
+
+        let schema = Schema::try_from(raw_schema).unwrap();
+        println!("{:#?}", schema);
+    }
+
+    /// Test $defs (2020-12 replacement for definitions)
+    #[test]
+    fn defs() {
+        let raw_schema = r##"{
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "$defs": {
+                "positiveInteger": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0
+                }
+            },
+            "type": "object",
+            "properties": {
+                "count": { "$ref": "#/$defs/positiveInteger" }
+            }
+        }"##;
+
+        let schema = Schema::try_from(raw_schema).unwrap();
+        println!("{:#?}", schema);
+    }
+
+    /// Test dependentRequired (2020-12 replacement for dependencies)
+    #[test]
+    fn dependent_required() {
+        let raw_schema = r#"{
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+                "name": { "type": "string" },
+                "credit_card": { "type": "string" },
+                "billing_address": { "type": "string" }
+            },
+            "dependentRequired": {
+                "credit_card": ["billing_address"]
+            }
+        }"#;
+
+        let schema = Schema::try_from(raw_schema).unwrap();
+        println!("{:#?}", schema);
+    }
+
+    /// Test unevaluatedProperties (2020-12 feature)
+    #[test]
+    fn unevaluated_properties() {
+        let raw_schema = r#"{
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+                "name": { "type": "string" }
+            },
+            "unevaluatedProperties": false
+        }"#;
+
+        let schema = Schema::try_from(raw_schema).unwrap();
+        println!("{:#?}", schema);
+    }
+
+    /// Test unevaluatedItems (2020-12 feature)
+    #[test]
+    fn unevaluated_items() {
+        let raw_schema = r#"{
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "array",
+            "prefixItems": [
+                { "type": "string" }
+            ],
+            "unevaluatedItems": false
+        }"#;
+
+        let schema = Schema::try_from(raw_schema).unwrap();
+        println!("{:#?}", schema);
+    }
+
+    /// Test contains with minContains and maxContains (2020-12 enhancements)
+    #[test]
+    fn contains_with_bounds() {
+        let raw_schema = r#"{
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "array",
+            "contains": { "type": "integer" },
+            "minContains": 1,
+            "maxContains": 3
+        }"#;
+
+        let schema = Schema::try_from(raw_schema).unwrap();
+        println!("{:#?}", schema);
+    }
+
+    /// Test backward compatibility with draft-07 definitions
+    #[test]
+    fn backward_compat_definitions() {
+        let raw_schema = r#"{
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "definitions": {
+                "name": { "type": "string" }
+            },
+            "type": "object"
+        }"#;
+
+        let schema = Schema::try_from(raw_schema).unwrap();
+        println!("{:#?}", schema);
+    }
+
+    /// Test backward compatibility with draft-07 dependencies
+    #[test]
+    fn backward_compat_dependencies() {
+        let raw_schema = r#"{
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+                "a": { "type": "string" },
+                "b": { "type": "string" }
+            },
+            "dependencies": {
+                "a": ["b"]
+            }
+        }"#;
+
+        let schema = Schema::try_from(raw_schema).unwrap();
+        println!("{:#?}", schema);
     }
 }

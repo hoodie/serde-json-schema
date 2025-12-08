@@ -1,4 +1,5 @@
-//! This crates provides simply the `Schema` struct. It resembles the latest (draft-07) [json-schema core spec](https://json-schema.org/latest/json-schema-core.html).
+//! This crates provides simply the `Schema` struct. It resembles the [JSON Schema 2020-12 spec](https://json-schema.org/draft/2020-12/json-schema-core.html).
+//! It also maintains backward compatibility with draft-07 schemas.
 //! If this spec is no longer up-to-date by the time you read this, please open a [new issue](https://github.com/hoodie/serde-json-schema/issues/new).
 //!
 //! If this type seems a bit confusing, then it's because json-schema is a bit too flexible.
@@ -183,35 +184,35 @@ impl Schema {
 }
 
 impl TryFrom<serde_json::Value> for Schema {
-    type Error = crate::error::Error;
+    type Error = error::Error;
     fn try_from(v: serde_json::Value) -> Result<Schema> {
         Ok(serde_json::from_value(v)?)
     }
 }
 
 impl TryFrom<&str> for Schema {
-    type Error = crate::error::Error;
+    type Error = error::Error;
     fn try_from(s: &str) -> Result<Schema> {
         Ok(serde_json::from_str(s)?)
     }
 }
 
 impl TryFrom<String> for Schema {
-    type Error = crate::error::Error;
+    type Error = error::Error;
     fn try_from(s: String) -> Result<Schema> {
         Ok(serde_json::from_str(&s)?)
     }
 }
 
 impl TryFrom<&str> for SchemaDefinition {
-    type Error = crate::error::Error;
+    type Error = error::Error;
     fn try_from(s: &str) -> Result<SchemaDefinition> {
         Ok(serde_json::from_str(s)?)
     }
 }
 
 impl TryFrom<String> for SchemaDefinition {
-    type Error = crate::error::Error;
+    type Error = error::Error;
     fn try_from(s: String) -> Result<SchemaDefinition> {
         Ok(serde_json::from_str(&s)?)
     }
@@ -225,13 +226,46 @@ pub(crate) struct SchemaDefinition {
 
     #[serde(rename = "$schema")]
     pub schema: Option<Url>,
+
+    /// JSON Schema 2020-12: $anchor keyword for plain-name fragment identifiers
+    #[serde(rename = "$anchor", skip_serializing_if = "Option::is_none")]
+    pub anchor: Option<String>,
+
+    /// JSON Schema 2020-12: $dynamicAnchor for dynamic referencing
+    #[serde(rename = "$dynamicAnchor", skip_serializing_if = "Option::is_none")]
+    pub dynamic_anchor: Option<String>,
+
+    /// JSON Schema 2020-12: $vocabulary for meta-schema vocabulary declarations
+    #[serde(rename = "$vocabulary", skip_serializing_if = "Option::is_none")]
+    pub vocabulary: Option<HashMap<String, bool>>,
+
+    /// JSON Schema 2020-12: $comment for schema comments
+    #[serde(rename = "$comment", skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+
+    pub title: Option<String>,
     pub description: Option<String>,
-    // pub properties: HashMap<String, Property>,
+
+    /// draft-07: dependencies (deprecated in 2020-12, use dependentSchemas/dependentRequired)
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub dependencies: Option<HashMap<String, Vec<String>>>,
+
+    /// JSON Schema 2020-12: dependentRequired replaces dependencies for required properties
+    #[serde(rename = "dependentRequired", skip_serializing_if = "Option::is_none")]
+    pub dependent_required: Option<HashMap<String, Vec<String>>>,
+
+    /// JSON Schema 2020-12: dependentSchemas replaces dependencies for schema dependencies
+    #[serde(rename = "dependentSchemas", skip_serializing_if = "Option::is_none")]
+    pub dependent_schemas: Option<HashMap<String, SchemaDefinition>>,
 
     #[serde(flatten)]
     pub specification: Option<Property>,
 
+    /// draft-07: definitions (deprecated in 2020-12, use $defs)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub definitions: Option<HashMap<String, SchemaDefinition>>,
+
+    /// JSON Schema 2020-12: $defs replaces definitions
+    #[serde(rename = "$defs", skip_serializing_if = "Option::is_none")]
+    pub defs: Option<HashMap<String, SchemaDefinition>>,
 }
