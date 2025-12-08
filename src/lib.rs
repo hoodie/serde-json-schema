@@ -50,6 +50,7 @@ pub struct Schema(SchemaInner);
 // TODO: root array vs object
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
+#[allow(clippy::large_enum_variant)]
 enum SchemaInner {
     /// The Common case
     Schema(SchemaDefinition),
@@ -183,35 +184,35 @@ impl Schema {
 }
 
 impl TryFrom<serde_json::Value> for Schema {
-    type Error = crate::error::Error;
+    type Error = error::Error;
     fn try_from(v: serde_json::Value) -> Result<Schema> {
         Ok(serde_json::from_value(v)?)
     }
 }
 
 impl TryFrom<&str> for Schema {
-    type Error = crate::error::Error;
+    type Error = error::Error;
     fn try_from(s: &str) -> Result<Schema> {
         Ok(serde_json::from_str(s)?)
     }
 }
 
 impl TryFrom<String> for Schema {
-    type Error = crate::error::Error;
+    type Error = error::Error;
     fn try_from(s: String) -> Result<Schema> {
         Ok(serde_json::from_str(&s)?)
     }
 }
 
 impl TryFrom<&str> for SchemaDefinition {
-    type Error = crate::error::Error;
+    type Error = error::Error;
     fn try_from(s: &str) -> Result<SchemaDefinition> {
         Ok(serde_json::from_str(s)?)
     }
 }
 
 impl TryFrom<String> for SchemaDefinition {
-    type Error = crate::error::Error;
+    type Error = error::Error;
     fn try_from(s: String) -> Result<SchemaDefinition> {
         Ok(serde_json::from_str(&s)?)
     }

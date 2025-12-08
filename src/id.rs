@@ -33,9 +33,9 @@ impl FromStr for Fragment {
     }
 }
 
-impl ToString for Fragment {
-    fn to_string(&self) -> String {
-        format!("#{}", self.0)
+impl fmt::Display for Fragment {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "#{}", self.0)
     }
 }
 
@@ -54,9 +54,9 @@ impl FromStr for Path {
     }
 }
 
-impl ToString for Path {
-    fn to_string(&self) -> String {
-        self.0.clone()
+impl fmt::Display for Path {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 
@@ -94,13 +94,13 @@ impl<'de> Visitor<'de> for SchemaIdVisitor {
     }
 }
 
-impl ToString for SchemaId {
-    fn to_string(&self) -> String {
+impl fmt::Display for SchemaId {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Pointer(p) => p.to_string(),
-            Self::Url(u) => u.to_string(),
-            Self::Fragment(f) => f.to_string(),
-            Self::Path(p) => p.to_string(),
+            Self::Pointer(pointer) => write!(f, "{}", pointer),
+            Self::Url(url) => write!(f, "{}", url),
+            Self::Fragment(fragment) => write!(f, "{}", fragment),
+            Self::Path(path) => write!(f, "{}", path),
         }
     }
 }

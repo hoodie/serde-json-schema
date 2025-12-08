@@ -67,7 +67,7 @@ fn find_ref<'a>(mut path: Split<'a, char>, mut data: Data<'a>) -> Option<Data<'a
 }
 
 impl RefProperty {
-    pub fn deref<'a>(&'a self, schema: &'a Schema) -> Option<&PropertyInstance> {
+    pub fn deref<'a>(&'a self, schema: &'a Schema) -> Option<&'a PropertyInstance> {
         let reference = self.reference.strip_prefix("#/")?;
         let path = reference.split('/');
         match find_ref(path, Data::Schema(schema))? {
