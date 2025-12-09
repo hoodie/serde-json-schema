@@ -70,12 +70,7 @@ fn get_items(p: &Property) -> Option<&PropertyInstance> {
     match p {
         Property::Value(PropertyInstance::Array {
             items: Some(items), ..
-        }) => {
-            match items.as_ref() {
-                ArrayItems::Schema(schema) => Some(schema),
-                ArrayItems::Tuple(_) => None, // Tuple items don't have a single schema
-            }
-        }
+        }) => Some(items.as_ref()),
         _ => None,
     }
 }
@@ -175,10 +170,10 @@ pub enum PropertyInstance {
     },
 
     Array {
-        /// JSON Schema 2020-12: items now only accepts a single schema (for items beyond prefixItems)
+        /// JSON Schema 2020-12: items accepts a single schema (for items beyond prefixItems)
         #[serde(skip_serializing_if = "Option::is_none")]
-        items: Option<Box<ArrayItems>>,
-        /// JSON Schema 2020-12: prefixItems replaces tuple validation (items as array in draft-07)
+        items: Option<Box<PropertyInstance>>,
+        /// JSON Schema 2020-12: prefixItems for tuple validation
         #[serde(rename = "prefixItems", skip_serializing_if = "Option::is_none")]
         prefix_items: Option<Vec<Property>>,
         /// JSON Schema 2020-12: unevaluatedItems
@@ -221,16 +216,6 @@ pub enum PropertyInstance {
 pub enum AdditionalProperties {
     Boolean(bool),
     Schema(Property),
-}
-
-/// Represents items in an array - can be a single schema or array of schemas (for draft-07 compatibility)
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(untagged)]
-pub enum ArrayItems {
-    /// Single schema for all items (2020-12 style)
-    Schema(PropertyInstance),
-    /// Array of schemas for tuple validation (draft-07 style, deprecated in 2020-12)
-    Tuple(Vec<Property>),
 }
 
 impl PropertyInstance {
@@ -297,28 +282,8 @@ impl PropertyInstance {
                 let prefix_len = prefix_items.as_ref().map(|p| p.len()).unwrap_or(0);
                 if let Some(items_schema) = items {
                     for (i, elem) in elems.iter().enumerate().skip(prefix_len) {
-                        match items_schema.as_ref() {
-                            ArrayItems::Schema(schema) => {
-                                if let Err(e) = schema.validate(elem) {
-                                    errors.extend(e.into_iter().map(|e| format!("[{}]: {}", i, e)));
-                                }
-                            }
-                            ArrayItems::Tuple(schemas) => {
-                                // draft-07 tuple validation fallback
-                                if let Some(schema) = schemas.get(i) {
-                                    match schema {
-                                        Property::Value(schema) => {
-                                            if let Err(e) = schema.validate(elem) {
-                                                errors.extend(
-                                                    e.into_iter()
-                                                        .map(|e| format!("[{}]: {}", i, e)),
-                                                );
-                                            }
-                                        }
-                                        Property::Ref(_) => unimplemented!("$ref in items tuple"),
-                                    }
-                                }
-                            }
+                        if let Err(e) = items_schema.validate(elem) {
+                            errors.extend(e.into_iter().map(|e| format!("[{}]: {}", i, e)));
                         }
                     }
                 }

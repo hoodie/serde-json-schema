@@ -1,6 +1,6 @@
 # serde-json-schema
 
-Minimal implementation of [JSON Schema 2020-12](https://json-schema.org/draft/2020-12/json-schema-core.html) using [serde-json](https://github.com/serde-rs/json). Also maintains backward compatibility with draft-07 schemas.
+Minimal implementation of [JSON Schema 2020-12](https://json-schema.org/draft/2020-12/json-schema-core.html) using [serde-json](https://github.com/serde-rs/json).
 
 ## Example
 
@@ -37,24 +37,17 @@ This crate supports the following JSON Schema 2020-12 features:
 * `$dynamicAnchor` / `$dynamicRef` - Dynamic referencing
 * `$vocabulary` - Meta-schema vocabulary declarations
 * `$comment` - Schema comments
-* `$defs` - Schema definitions (replaces `definitions`)
-* `prefixItems` - Tuple validation (replaces `items` as array)
+* `$defs` - Schema definitions
+* `prefixItems` - Tuple validation
 * `items` - Additional items schema
-* `dependentRequired` / `dependentSchemas` - Property dependencies (replaces `dependencies`)
+* `dependentRequired` / `dependentSchemas` - Property dependencies
 * `unevaluatedProperties` / `unevaluatedItems` - Unevaluated applicators
 * `contains` with `minContains` / `maxContains` - Array containment validation
-
-### Backward Compatibility
-
-The crate also supports draft-07 keywords for backward compatibility:
-* `definitions` (use `$defs` in new schemas)
-* `dependencies` (use `dependentRequired` / `dependentSchemas` in new schemas)
 
 ## Features/TODO
 
 * [x] JSON Schema Core Type
 * [x] JSON Schema 2020-12 support
-* [x] Backward compatibility with draft-07
 * [ ] JSON Schema Validation (partial, possibly different crate or optional feature)
 * [ ] Codegen (definitely different crate)
 * [ ] RootSchema vs SubSchema handling (is that used often?)

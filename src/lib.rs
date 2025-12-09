@@ -1,5 +1,4 @@
 //! This crates provides simply the `Schema` struct. It resembles the [JSON Schema 2020-12 spec](https://json-schema.org/draft/2020-12/json-schema-core.html).
-//! It also maintains backward compatibility with draft-07 schemas.
 //! If this spec is no longer up-to-date by the time you read this, please open a [new issue](https://github.com/hoodie/serde-json-schema/issues/new).
 //!
 //! If this type seems a bit confusing, then it's because json-schema is a bit too flexible.
@@ -246,26 +245,18 @@ pub(crate) struct SchemaDefinition {
     pub title: Option<String>,
     pub description: Option<String>,
 
-    /// draft-07: dependencies (deprecated in 2020-12, use dependentSchemas/dependentRequired)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub dependencies: Option<HashMap<String, Vec<String>>>,
-
-    /// JSON Schema 2020-12: dependentRequired replaces dependencies for required properties
+    /// JSON Schema 2020-12: dependentRequired for property dependencies
     #[serde(rename = "dependentRequired", skip_serializing_if = "Option::is_none")]
     pub dependent_required: Option<HashMap<String, Vec<String>>>,
 
-    /// JSON Schema 2020-12: dependentSchemas replaces dependencies for schema dependencies
+    /// JSON Schema 2020-12: dependentSchemas for schema dependencies
     #[serde(rename = "dependentSchemas", skip_serializing_if = "Option::is_none")]
     pub dependent_schemas: Option<HashMap<String, SchemaDefinition>>,
 
     #[serde(flatten)]
     pub specification: Option<Property>,
 
-    /// draft-07: definitions (deprecated in 2020-12, use $defs)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub definitions: Option<HashMap<String, SchemaDefinition>>,
-
-    /// JSON Schema 2020-12: $defs replaces definitions
+    /// JSON Schema 2020-12: $defs for schema definitions
     #[serde(rename = "$defs", skip_serializing_if = "Option::is_none")]
     pub defs: Option<HashMap<String, SchemaDefinition>>,
 }

@@ -560,38 +560,4 @@ mod json_schema_2020_12 {
         let schema = Schema::try_from(raw_schema).unwrap();
         println!("{:#?}", schema);
     }
-
-    /// Test backward compatibility with draft-07 definitions
-    #[test]
-    fn backward_compat_definitions() {
-        let raw_schema = r#"{
-            "$schema": "https://json-schema.org/draft/2020-12/schema",
-            "definitions": {
-                "name": { "type": "string" }
-            },
-            "type": "object"
-        }"#;
-
-        let schema = Schema::try_from(raw_schema).unwrap();
-        println!("{:#?}", schema);
-    }
-
-    /// Test backward compatibility with draft-07 dependencies
-    #[test]
-    fn backward_compat_dependencies() {
-        let raw_schema = r#"{
-            "$schema": "https://json-schema.org/draft/2020-12/schema",
-            "type": "object",
-            "properties": {
-                "a": { "type": "string" },
-                "b": { "type": "string" }
-            },
-            "dependencies": {
-                "a": ["b"]
-            }
-        }"#;
-
-        let schema = Schema::try_from(raw_schema).unwrap();
-        println!("{:#?}", schema);
-    }
 }
