@@ -1,4 +1,4 @@
-//! This crates provides simply the `Schema` struct. It resembles the latest (draft-07) [json-schema core spec](https://json-schema.org/latest/json-schema-core.html).
+//! This crates provides simply the `Schema` struct. It resembles the [JSON Schema 2020-12 spec](https://json-schema.org/draft/2020-12/json-schema-core.html).
 //! If this spec is no longer up-to-date by the time you read this, please open a [new issue](https://github.com/hoodie/serde-json-schema/issues/new).
 //!
 //! If this type seems a bit confusing, then it's because json-schema is a bit too flexible.
@@ -226,13 +226,38 @@ pub(crate) struct SchemaDefinition {
 
     #[serde(rename = "$schema")]
     pub schema: Option<Url>,
+
+    /// JSON Schema 2020-12: $anchor keyword for plain-name fragment identifiers
+    #[serde(rename = "$anchor", skip_serializing_if = "Option::is_none")]
+    pub anchor: Option<String>,
+
+    /// JSON Schema 2020-12: $dynamicAnchor for dynamic referencing
+    #[serde(rename = "$dynamicAnchor", skip_serializing_if = "Option::is_none")]
+    pub dynamic_anchor: Option<String>,
+
+    /// JSON Schema 2020-12: $vocabulary for meta-schema vocabulary declarations
+    #[serde(rename = "$vocabulary", skip_serializing_if = "Option::is_none")]
+    pub vocabulary: Option<HashMap<String, bool>>,
+
+    /// JSON Schema 2020-12: $comment for schema comments
+    #[serde(rename = "$comment", skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+
+    pub title: Option<String>,
     pub description: Option<String>,
-    // pub properties: HashMap<String, Property>,
-    pub dependencies: Option<HashMap<String, Vec<String>>>,
+
+    /// JSON Schema 2020-12: dependentRequired for property dependencies
+    #[serde(rename = "dependentRequired", skip_serializing_if = "Option::is_none")]
+    pub dependent_required: Option<HashMap<String, Vec<String>>>,
+
+    /// JSON Schema 2020-12: dependentSchemas for schema dependencies
+    #[serde(rename = "dependentSchemas", skip_serializing_if = "Option::is_none")]
+    pub dependent_schemas: Option<HashMap<String, SchemaDefinition>>,
 
     #[serde(flatten)]
     pub specification: Option<Property>,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub definitions: Option<HashMap<String, SchemaDefinition>>,
+    /// JSON Schema 2020-12: $defs for schema definitions
+    #[serde(rename = "$defs", skip_serializing_if = "Option::is_none")]
+    pub defs: Option<HashMap<String, SchemaDefinition>>,
 }
