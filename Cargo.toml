@@ -9,23 +9,18 @@ description = "minimal json-schema type"
 
 license = "MIT/Apache-2.0"
 readme = "README.md"
-include = [
-  "README.md",
-  "Cargo.toml",
-  "src/*.rs",
-  "tests/*.rs"
-]
+include = ["README.md", "Cargo.toml", "src/*.rs", "tests/*.rs"]
 
 [dependencies]
-json-pointer = "0.3"
+json-pointer = "0.3.4"
 
 [dependencies.url]
-version = "2.1"
+version = "2.5.7"
 features = ["serde"]
 
 [dependencies.serde]
-version = "1.0"
+version = "1.0.228"
 features = ["derive"]
 
 [dependencies.serde_json]
-version = "1.0"
+version = "1.0.145"
