@@ -50,6 +50,7 @@ pub struct Schema(SchemaInner);
 // TODO: root array vs object
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
+#[allow(clippy::large_enum_variant)]
 enum SchemaInner {
     /// The Common case
     Schema(SchemaDefinition),
