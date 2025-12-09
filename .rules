@@ -1,0 +1,184 @@
+# serde-json-schema
+
+This repo implements an outdated draft of json-schema. On this branch we're trying to upgrade to version 2020-12.
+
+The work is in progress and needs validation and refinement.
+
+We are migrating from draft 7 to 2020-12
+
+## Migration from older drafts
+
+### Details for migrations from Draft-07 to 2019-09.
+<https://json-schema.org/draft/2019-09/release-notes>
+
+### Draft 2019-09 to Draft 2020-12
+<https://json-schema.org/draft/2020-12/release-notes>
+
+### Notes on the current draft 2020-12
+<https://json-schema.org/understanding-json-schema/reference>
+<https://json-schema.org/draft/2020-12/schema>
+<https://json-schema.org/draft/2020-12/draft-bhutton-json-schema-validation-01>
+
+## Existing work by @yoshuawuyts
+
+git commits:
+* 1fadf67
+* 94f6595
+
+---
+
+## Migration Status Report
+
+### ✅ Successfully Implemented 2020-12 Features
+
+#### Core Vocabulary
+- [x] `$schema` - dialect identifier
+- [x] `$id` - schema identifier  
+- [x] `$anchor` - plain-name fragment identifiers (NEW in 2020-12)
+- [x] `$dynamicAnchor` - dynamic anchors (NEW in 2020-12)
+- [x] `$vocabulary` - meta-schema vocabulary (NEW in 2020-12)
+- [x] `$comment` - schema comments
+- [x] `$defs` - schema definitions (RENAMED from `definitions`)
+- [x] `$ref` - schema references
+- [x] `$dynamicRef` - dynamic references (NEW in 2020-12)
+
+#### Array Applicators (Major Changes from draft-07)
+- [x] `prefixItems` - tuple validation (REPLACES array form of `items`)
+- [x] `items` - now single schema only (CHANGED from draft-07)
+- [x] `unevaluatedItems` - unevaluated item validation (NEW in 2020-12)
+- [x] `contains` with `minContains`/`maxContains` - enhanced containment
+
+#### Object Applicators
+- [x] `properties` - property schemas
+- [x] `patternProperties` - pattern-based properties
+- [x] `additionalProperties` - additional property schema
+- [x] `unevaluatedProperties` - unevaluated property validation (NEW in 2020-12)
+- [x] `propertyNames` - property name validation
+- [x] `dependentRequired` - required property dependencies (REPLACES `dependencies`)
+- [x] `dependentSchemas` - schema dependencies (REPLACES `dependencies`)
+
+#### Validation Keywords
+- [x] Number: `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum` (now numeric), `multipleOf`
+- [x] String: `minLength`, `maxLength`, `pattern`, `format`
+- [x] String Content: `contentMediaType`, `contentEncoding`, `contentSchema` (NEW in 2020-12)
+- [x] Array: `minItems`, `maxItems`, `uniqueItems`
+- [x] Object: `minProperties`, `maxProperties`, `required`
+
+#### Type System
+- [x] Boolean schemas (`true`/`false`)
+- [x] Basic types: `null`, `boolean`, `integer`, `number`, `string`, `array`, `object`
+
+---
+
+### ❌ Missing Critical Features
+
+#### Applicator Keywords (HIGH PRIORITY - BLOCKING)
+These are fundamental composition keywords used in virtually all real-world schemas:
+- [ ] **`allOf`** - must match ALL of the schemas
+- [ ] **`anyOf`** - must match AT LEAST ONE schema
+- [ ] **`oneOf`** - must match EXACTLY ONE schema  
+- [ ] **`not`** - must NOT match the schema
+
+#### Conditional Keywords (HIGH PRIORITY)
+- [ ] **`if`** / **`then`** / **`else`** - conditional validation (from draft-07, kept in 2020-12)
+
+#### Value Constraint Keywords (HIGH PRIORITY)
+- [ ] **`enum`** - enumeration of valid values
+- [ ] **`const`** - constant value validation (from draft-06)
+
+#### Metadata Keywords (MEDIUM PRIORITY)
+- [ ] `title` in `PropertyInstance` (currently only in `SchemaDefinition`)
+- [ ] `description` in `PropertyInstance` (currently only in `SchemaDefinition`)
+- [ ] `default` - default value
+- [ ] `examples` - example values (RENAMED from `example` in draft-06)
+- [ ] `deprecated` - deprecation flag (NEW in 2019-09)
+- [ ] `readOnly` / `writeOnly` - read/write constraints
+
+#### Validation Implementation (MEDIUM PRIORITY)
+The `validate()` method exists but is incomplete:
+- [ ] Proper number range validation (min/max/exclusive bounds)
+- [ ] String pattern validation (regex matching)
+- [ ] String length validation (minLength/maxLength)
+- [ ] String format validation (email, uri, date-time, etc.)
+- [ ] `allOf`/`anyOf`/`oneOf`/`not` evaluation logic
+- [ ] `if`/`then`/`else` conditional logic
+- [ ] `enum`/`const` value checking
+- [ ] `unevaluatedProperties` actual evaluation logic
+- [ ] `unevaluatedItems` actual evaluation logic
+- [ ] `dependentRequired` validation
+- [ ] `dependentSchemas` validation
+
+#### Reference Resolution (LOW PRIORITY)
+- [ ] External reference resolution (HTTP URLs)
+- [ ] Circular reference detection and handling
+- [ ] Complete `$dynamicRef` evaluation logic
+- [ ] Reference caching/optimization
+
+---
+
+### 📋 Recommended Implementation Order
+
+#### Phase 1: Core Applicators (CRITICAL - START HERE)
+1. Add `allOf`, `anyOf`, `oneOf`, `not` fields to `SchemaDefinition`
+2. Update serde serialization/deserialization
+3. Add basic parsing tests
+4. Implement validation logic for these applicators
+5. Add comprehensive tests
+
+#### Phase 2: Value Constraints (HIGH PRIORITY)
+1. Add `enum` keyword (Vec of allowed values)
+2. Add `const` keyword (single allowed value)
+3. Implement validation logic
+4. Add tests for enum/const
+
+#### Phase 3: Conditional Logic (HIGH PRIORITY)
+1. Add `if`, `then`, `else` fields to `SchemaDefinition`
+2. Implement conditional evaluation in validation
+3. Add tests for conditional schemas
+
+#### Phase 4: Complete Validation (MEDIUM PRIORITY)
+1. Implement actual validation for number constraints (min/max/exclusive/multipleOf)
+2. Implement string pattern matching and format validation
+3. Implement `unevaluatedProperties`/`unevaluatedItems` logic
+4. Implement `dependentRequired`/`dependentSchemas` validation
+5. Improve error messages with detailed paths
+
+#### Phase 5: Metadata & Polish (LOW PRIORITY)
+1. Add remaining metadata keywords
+2. Add metadata to `PropertyInstance`
+3. Improve documentation
+4. Add more example schemas
+
+---
+
+### 🧪 Test Coverage Status
+
+Current test coverage:
+- [x] Basic schema parsing
+- [x] 2020-12 specific keyword parsing (prefixItems, $anchor, etc.)
+- [x] Basic validation scenarios (type checking)
+- [x] Reference dereferencing (basic)
+- [ ] `allOf`/`anyOf`/`oneOf`/`not` tests (MISSING)
+- [ ] `if`/`then`/`else` tests (MISSING)
+- [ ] `enum`/`const` tests (MISSING)
+- [ ] Comprehensive validation behavior tests (MINIMAL)
+- [ ] Edge cases and error conditions (LIMITED)
+
+---
+
+### 🎯 Next Steps for Contributors
+
+**Immediate priorities:**
+1. Implement `allOf`, `anyOf`, `oneOf`, `not` applicators
+2. Add `enum` and `const` support
+3. Implement validation logic for these keywords
+
+**Key files to modify:**
+- `src/lib.rs` - Add applicator fields to `SchemaDefinition`
+- `src/property.rs` - Consider if applicators belong here too
+- `src/validation.rs` - Implement validation logic
+- `tests/lib.rs` - Add comprehensive tests
+
+**Reference implementations:**
+- Look at other Rust JSON Schema libraries for guidance
+- Review the official 2020-12 test suite: https://github.com/json-schema-org/JSON-Schema-Test-Suite
